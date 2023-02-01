@@ -136,6 +136,7 @@ def evaluator(metric, dataset, threshold, memory, certitude=0.7, verbose=True):
     accepted = 0
     correct = 0
     incorrect = 0
+    egal = 0
 
     if verbose:
         bar = progressbar.ProgressBar(max_value=len(dataset))
@@ -156,27 +157,28 @@ def evaluator(metric, dataset, threshold, memory, certitude=0.7, verbose=True):
             scoreB = MinWER(dataset[i]["reference"], dataset[i]["hypB"], metric, threshold, memory)
             if (scoreA < scoreB and nbrA > nbrB) or (scoreB < scoreA and nbrB > nbrA):
                 correct += 1
+            elif scoreA == scoreB:
+                egal += 1
             else:
                 incorrect += 1
             continue
         else:
             ignored += 1
     print()
-    print("ratio correct:", correct/(correct+incorrect)*100)
-    print("ratio ignored:", ignored/(ignored+accepted)*100)
-    print("ignored:", ignored)
-    print("accepted:", accepted)
-    return correct/(correct+incorrect)*100
+    print("correct:", correct)
+    print("egal:", egal)
+    print("incorrect:", incorrect)
+    return correct, egal, incorrect
 
-def write(namefile, x, y):
+def write(namefile, threshold, x, y):
     with open("results/" + namefile + ".txt", "a", encoding="utf8") as file:
-        file.write(namefile + "," + str(x) + "," + str(y) + "\n")
+        file.write(namefile + "," + str(threshold) + "," + str(x) + "," + str(y) + "\n")
 
 if __name__ == '__main__':
     print("Reading dataset...")
     dataset = read_dataset("hats.txt")
 
-    
+    """
     import jiwer
     memory = 0
     metric = wer
@@ -186,11 +188,11 @@ if __name__ == '__main__':
     model = SentenceTransformer('dangvantuan/sentence-camembert-base')
     memory = model
     metric = semdist
-    """
+    
 
-    for threshold in numpy.arange(0.1, 0.9, 0.3):
+    for threshold in numpy.arange(0.1, 0.9, 0.1):
         threshold = int(threshold*10)/10
         x = evaluator(metric, dataset, threshold, memory, certitude=1)
         y = evaluator(metric, dataset, threshold, memory, certitude=0.7)
-        write("SD_sent_camembase_" + str(threshold), x, y)
+        write("SD_sent_camembase_", threshold, x, y)
 
