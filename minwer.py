@@ -22,61 +22,63 @@ def get_next_level(prev_level):
     #   prev_level = {001, 010, 000}
     # OUTPUT: 
     #   level == {101, 011, 110}
+
     level = set()
     for errors in prev_level:
         errors = list(errors) # string to list for item assigment
         for i in range(len(errors)):
             error = errors[i]
-            if error != 0:
+            if error == '0':
                 new_errors = errors.copy()
                 new_errors[i] = 1
-                level.add(''.join(new_errors)) # add list (converted to string)
+                level.add(''.join(str(x) for x in new_errors)) # add list (converted to string)
     return level
 
-def correcter(ref, hyp, corrected, base_errors):
-    # ref, hyp, corrected (100), base_errors (deesei)
-    errors = list(errors) # convert string to list
-    # deesei
-    # 000
-    # return hyp
-
+def correcter(ref, hyp, corrected, errors):
+    # ref, hyp, corrected (100), errors (deesei)
+    
     # 100 # INDEX   corrected[INDEX] = True or False ?
     # for e in errors:
     # if e == "s":
+    print("\n" + corrected)
     INDEX = 0
 
     new_hyp = ""
     ir = 0
     ih = 0
+    print("errors:", errors)
     for i in range(len(errors)):
         if errors[i] == "e": # already
-            print("e\t'" + ref[ir] + "' issu de la référence.")
             new_hyp += ref[ir] + " "
             ih += 1
             ir += 1
-            print("\t", new_hyp)
-        elif errors[i] == "i": # insertion
-            if corrected[INDEX] = 
-            print("i\t'" + hyp[ih] + "' issu de l'hypothèse.")
-            new_hyp += hyp[ih] + " "
+            # print("e\t", new_hyp)
+        elif errors[i] == "i": # insertion corrected
+            if corrected[INDEX] == '0': # if we do not correct the error
+                new_hyp += hyp[ih] + " " # the extra word is not deleted
             ih += 1
-            print("\t", new_hyp)
+            INDEX += 1
+            # print("i\t", new_hyp)
         elif errors[i] == "d": # deletion
-            print("d\t'" + ref[ir] + "' est ignoré.")
-            #new_hyp += ref[ir] + " "
+            if corrected[INDEX] == '1': # if we do correct the error
+                new_hyp += ref[ir] + " " # we add the missing word
+            # else  # we do not restaure the missing word
             ir += 1
-            print("\t", new_hyp)
+            INDEX += 1
+            # print("d\t", new_hyp)
         elif errors[i] == "s": # substitution
-            print("s\t'" + hyp[ih] + "' est issu de l'hypothèse.")
-            new_hyp += hyp[ih] + " "
+            if corrected[INDEX] == '1':
+                new_hyp += ref[ir] + " "
+            else:
+                new_hyp += hyp[ih] + " " # we do not correct the substitution 
             ih += 1
             ir += 1
-            print("\t", new_hyp)
+            INDEX += 1
+            # print("s\t", new_hyp)
         else: 
             print("Error: the newhyp inputs 'errors' and 'new_errors' are expected to be string of e,s,i,d. Received", errors[i])
             exit(-1)
         i += 1
-    input()
     return new_hyp[:-1]
 
 def semdist(ref, hyp, memory):
@@ -95,20 +97,21 @@ def minwer(ref, hyp, metric, memory):
     print(hyp)
     errors, distance = awer.wer(ref, hyp)
     base_errors = ''.join(errors)
-    level = [0]*distance
+    level = {''.join(str(x) for x in [0]*distance)}
     # base_errors = ['esieed']
     # distance = 3
-    # level = [0, 0, 0]
+    # level = {000}
     if distance <= __MAX__: # to limit the size of graph
         print(level)
         for l in level:
-            print(l)
             print("\t", correcter(ref, hyp, l, base_errors))
+            input()
+
         level = get_next_level(level)
         print(level)
         for l in level:
-            print(l)
             print("\t", correcter(ref, hyp, l, base_errors))
+            input()
     else:
         return distance
         
