@@ -36,17 +36,14 @@ def get_next_level(prev_level):
 
 def correcter(ref, hyp, corrected, errors):
     # ref, hyp, corrected (100), errors (deesei)
-    
-    # 100 # INDEX   corrected[INDEX] = True or False ?
-    # for e in errors:
-    # if e == "s":
-    print("\n" + corrected)
+
+    ref = ref.split(" ")
+    hyp = hyp.split(" ")
     INDEX = 0
 
     new_hyp = ""
     ir = 0
     ih = 0
-    print("errors:", errors)
     for i in range(len(errors)):
         if errors[i] == "e": # already
             new_hyp += ref[ir] + " "
@@ -88,30 +85,34 @@ def semdist(ref, hyp, memory):
     score = cosine_similarity(ref_projection, hyp_projection)[0][0]
     return (1-score)*100 # lower is better
 
-def minwer(ref, hyp, metric, memory):
-    __MAX__ = 10 # maximum distance to avoid too high computational cost
-    ref = ref.split(" ")
-    hyp = hyp.split(" ")
+def wer(ref, hyp, memory):
+    return jiwer.wer(ref, hyp)
 
+def MinWER(ref, hyp, metric, threshold, memory):
+    __MAX__ = 10 # maximum distance to avoid too high computational cost
     print(ref)
     print(hyp)
-    errors, distance = awer.wer(ref, hyp)
+    errors, distance = awer.wer(ref.split(" "), hyp.split(" "))
     base_errors = ''.join(errors)
     level = {''.join(str(x) for x in [0]*distance)}
     # base_errors = ['esieed']
     # distance = 3
     # level = {000}
     if distance <= __MAX__: # to limit the size of graph
-        print(level)
-        for l in level:
-            print("\t", correcter(ref, hyp, l, base_errors))
-            input()
-
-        level = get_next_level(level)
-        print(level)
-        for l in level:
-            print("\t", correcter(ref, hyp, l, base_errors))
-            input()
+        minwer = 0
+        while minwer < distance:
+            print()
+            print(level)
+            for node in level:
+                print("node:", node)
+                corrected_hyp = correcter(ref, hyp, node, base_errors)
+                score = metric(ref, corrected_hyp, memory)
+                print(str(score) + "\t" + ref + "\t" + corrected_hyp)
+                if score < threshold: # lower-is-better
+                    return minwer
+            level = get_next_level(level)
+            minwer += 1
+        return distance
     else:
         return distance
         
@@ -135,14 +136,19 @@ def read_dataset(dataname):
     return dataset
 
 
-def edit_distance(ref, hyp):
-    return wer(ref, hyp)*len(ref.split(" "))
-
 if __name__ == '__main__':
     print("Reading dataset...")
     dataset = read_dataset("hats.txt")
 
 
-    minwer("I book them an appointment", "book them a appointment and", 0, 0)
+    ref = "I book them an appointment"
+    hyp = "book them a appointment and"
+    import jiwer
+    metric = wer
+    threshold = 0.3
+    memory = 0
+    m = MinWER(ref, hyp, metric, threshold, memory)
+    print()
+    print("The computed minwer is", m)
 
 
