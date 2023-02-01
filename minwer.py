@@ -1,5 +1,6 @@
 import progressbar
 import aligned_wer as awer
+import numpy
 
 # problem: in a previous version, the computation of graph can be very expensive, without considering the metric cost
 # with 40 errors (which happens), we have 10^12 nodes.
@@ -175,7 +176,7 @@ if __name__ == '__main__':
     print("Reading dataset...")
     dataset = read_dataset("hats.txt")
 
-    """
+    
     import jiwer
     memory = 0
     metric = wer
@@ -185,11 +186,11 @@ if __name__ == '__main__':
     model = SentenceTransformer('dangvantuan/sentence-camembert-base')
     memory = model
     metric = semdist
-    
+    """
 
-    threshold = 0
-
-    x = evaluator(metric, dataset, threshold, memory, certitude=1)
-    y = evaluator(metric, dataset, threshold, memory, certitude=0.7)
-    write("wer", x, y)
+    for threshold in numpy.arange(0.1, 0.9, 0.3):
+        threshold = int(threshold*10)/10
+        x = evaluator(metric, dataset, threshold, memory, certitude=1)
+        y = evaluator(metric, dataset, threshold, memory, certitude=0.7)
+        write("SD_sent_camembase_" + str(threshold), x, y)
 
