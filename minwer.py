@@ -1,3 +1,4 @@
+import progressbar
 import aligned_wer as awer
 
 # problem: in a previous version, the computation of graph can be very expensive, without considering the metric cost
@@ -83,15 +84,13 @@ def semdist(ref, hyp, memory):
     ref_projection = model.encode(ref).reshape(1, -1)
     hyp_projection = model.encode(hyp).reshape(1, -1)
     score = cosine_similarity(ref_projection, hyp_projection)[0][0]
-    return (1-score)*100 # lower is better
+    return (1-score) # lower is better
 
 def wer(ref, hyp, memory):
     return jiwer.wer(ref, hyp)
 
 def MinWER(ref, hyp, metric, threshold, memory):
     __MAX__ = 10 # maximum distance to avoid too high computational cost
-    print(ref)
-    print(hyp)
     errors, distance = awer.wer(ref.split(" "), hyp.split(" "))
     base_errors = ''.join(errors)
     level = {''.join(str(x) for x in [0]*distance)}
@@ -101,13 +100,9 @@ def MinWER(ref, hyp, metric, threshold, memory):
     if distance <= __MAX__: # to limit the size of graph
         minwer = 0
         while minwer < distance:
-            print()
-            print(level)
             for node in level:
-                print("node:", node)
                 corrected_hyp = correcter(ref, hyp, node, base_errors)
                 score = metric(ref, corrected_hyp, memory)
-                print(str(score) + "\t" + ref + "\t" + corrected_hyp)
                 if score < threshold: # lower-is-better
                     return minwer
             level = get_next_level(level)
@@ -135,20 +130,66 @@ def read_dataset(dataname):
             dataset.append(dictionary)
     return dataset
 
+def evaluator(metric, dataset, threshold, memory, certitude=0.7, verbose=True):
+    ignored = 0
+    accepted = 0
+    correct = 0
+    incorrect = 0
+
+    if verbose:
+        bar = progressbar.ProgressBar(max_value=len(dataset))
+    for i in range(len(dataset)):
+        if verbose:
+            bar.update(i)
+        nbrA = dataset[i]["nbrA"]
+        nbrB = dataset[i]["nbrB"]
+        
+        if nbrA+nbrB < 5:
+            ignored += 1
+            continue
+        maximum = max(nbrA, nbrB)
+        c = maximum/(nbrA+nbrB)
+        if c >= certitude: # if humans are certain about choice
+            accepted += 1
+            scoreA = MinWER(dataset[i]["reference"], dataset[i]["hypA"], metric, threshold, memory)
+            scoreB = MinWER(dataset[i]["reference"], dataset[i]["hypB"], metric, threshold, memory)
+            if (scoreA < scoreB and nbrA > nbrB) or (scoreB < scoreA and nbrB > nbrA):
+                correct += 1
+            else:
+                incorrect += 1
+            continue
+        else:
+            ignored += 1
+    print()
+    print("ratio correct:", correct/(correct+incorrect)*100)
+    print("ratio ignored:", ignored/(ignored+accepted)*100)
+    print("ignored:", ignored)
+    print("accepted:", accepted)
+    return correct/(correct+incorrect)*100
+
+def write(namefile, x, y):
+    with open("results/" + namefile + ".txt", "a", encoding="utf8") as file:
+        file.write(namefile + "," + str(x) + "," + str(y) + "\n")
 
 if __name__ == '__main__':
     print("Reading dataset...")
     dataset = read_dataset("hats.txt")
 
-
-    ref = "I book them an appointment"
-    hyp = "book them a appointment and"
+    """
     import jiwer
-    metric = wer
-    threshold = 0.3
     memory = 0
-    m = MinWER(ref, hyp, metric, threshold, memory)
-    print()
-    print("The computed minwer is", m)
+    metric = wer
+    """
+    from sentence_transformers import SentenceTransformer
+    from sklearn.metrics.pairwise import cosine_similarity
+    model = SentenceTransformer('dangvantuan/sentence-camembert-base')
+    memory = model
+    metric = semdist
+    
 
+    threshold = 0
+
+    x = evaluator(metric, dataset, threshold, memory, certitude=1)
+    y = evaluator(metric, dataset, threshold, memory, certitude=0.7)
+    write("wer", x, y)
 
