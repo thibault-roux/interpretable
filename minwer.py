@@ -190,9 +190,9 @@ if __name__ == '__main__':
     metric = semdist
     
 
-    for threshold in numpy.arange(0.1, 0.9, 0.1):
+    for threshold in numpy.arange(0, 0.11, 0.05):
         threshold = int(threshold*10)/10
         x = evaluator(metric, dataset, threshold, memory, certitude=1)
         y = evaluator(metric, dataset, threshold, memory, certitude=0.7)
-        write("SD_sent_camembase_", threshold, x, y)
+        write("SD_sent_camembase", threshold, x, y)
 
