@@ -81,12 +81,19 @@ def correcter(ref, hyp, corrected, errors):
         i += 1
     return new_hyp[:-1]
 
+def bertscore(ref, hyp, memory):
+    scorer = memory
+    P, R, F1 = scorer.score([hyp], [ref])
+    return 100-F1*100
+
+"""
 def semdist(ref, hyp, memory):
     model = memory
     ref_projection = model.encode(ref).reshape(1, -1)
     hyp_projection = model.encode(hyp).reshape(1, -1)
     score = cosine_similarity(ref_projection, hyp_projection)[0][0]
     return (1-score) # lower is better
+"""
 
 def wer(ref, hyp, memory):
     return jiwer.wer(ref, hyp)
@@ -148,7 +155,7 @@ def evaluator(metric, dataset, threshold, memory, certitude=0.7, verbose=True):
 
     # recover scores save
     try:
-        with open("pickle/SD_sent_camembase.pickle", "rb") as handle:
+        with open("pickle/bertscore.pickle", "rb") as handle:
             save = pickle.load(handle)
     except FileNotFoundError:
         save = dict()
@@ -180,7 +187,7 @@ def evaluator(metric, dataset, threshold, memory, certitude=0.7, verbose=True):
         else:
             ignored += 1
     # storing scores save
-    with open("pickle/SD_sent_camembase.pickle", "wb") as handle:
+    with open("pickle/bertscore.pickle", "wb") as handle:
         pickle.dump(save, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     print()
@@ -202,17 +209,23 @@ if __name__ == '__main__':
     memory = 0
     metric = wer
     """
+    """
     from sentence_transformers import SentenceTransformer
     from sklearn.metrics.pairwise import cosine_similarity
-    model = SentenceTransformer('dangvantuan/sentence-camembert-base')
+    model = SentenceTransformer('dangvantuan/sentence-camembert-large')
     memory = model
     metric = semdist
+    """
+    from bert_score import BERTScorer
+    memory = BERTScorer(lang="fr")
+    metric = bertscore
     
 
-    #for threshold in numpy.arange(0.02, 0.10, 0.02):
-    for threshold in [0.005, 0.01, 0.015, 0.025, 0.03]:
-        threshold = int(threshold*1000)/1000
+    #for threshold in [0.005, 0.01, 0.015, 0.025, 0.03]:
+    #for threshold in numpy.arange(0.001, 0.08, 0.001):
+    for threshold in numpy.arange(0, 0.5, 0.1):
+        threshold = int(threshold*10000)/10000
         x = evaluator(metric, dataset, threshold, memory, certitude=1)
         y = evaluator(metric, dataset, threshold, memory, certitude=0.7)
-        write("SD_sent_camembase", threshold, x, y)
+        write("bertscore", threshold, x, y)
 
