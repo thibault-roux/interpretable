@@ -1,6 +1,7 @@
 import progressbar
 import aligned_wer as awer
 import numpy
+import pickle
 
 # problem: in a previous version, the computation of graph can be very expensive, without considering the metric cost
 # with 40 errors (which happens), we have 10^12 nodes.
@@ -90,7 +91,7 @@ def semdist(ref, hyp, memory):
 def wer(ref, hyp, memory):
     return jiwer.wer(ref, hyp)
 
-def MinWER(ref, hyp, metric, threshold, memory):
+def MinWER(ref, hyp, metric, threshold, save, memory):
     __MAX__ = 10 # maximum distance to avoid too high computational cost
     errors, distance = awer.wer(ref.split(" "), hyp.split(" "))
     base_errors = ''.join(errors)
@@ -103,7 +104,14 @@ def MinWER(ref, hyp, metric, threshold, memory):
         while minwer < distance:
             for node in level:
                 corrected_hyp = correcter(ref, hyp, node, base_errors)
-                score = metric(ref, corrected_hyp, memory)
+                # optimization to avoid recomputation
+                try:
+                    score = save[ref][corrected_hyp]
+                except KeyError:
+                    score = metric(ref, corrected_hyp, memory)
+                    if ref not in save:
+                        save[ref] = dict()
+                    save[ref][corrected_hyp] = score
                 if score < threshold: # lower-is-better
                     return minwer
             level = get_next_level(level)
@@ -138,6 +146,13 @@ def evaluator(metric, dataset, threshold, memory, certitude=0.7, verbose=True):
     incorrect = 0
     egal = 0
 
+    # recover scores save
+    try:
+        with open("pickle/SD_sent_camembase.pickle", "rb") as handle:
+            save = pickle.load(handle)
+    except FileNotFoundError:
+        save = dict()
+
     if verbose:
         bar = progressbar.ProgressBar(max_value=len(dataset))
     for i in range(len(dataset)):
@@ -153,8 +168,8 @@ def evaluator(metric, dataset, threshold, memory, certitude=0.7, verbose=True):
         c = maximum/(nbrA+nbrB)
         if c >= certitude: # if humans are certain about choice
             accepted += 1
-            scoreA = MinWER(dataset[i]["reference"], dataset[i]["hypA"], metric, threshold, memory)
-            scoreB = MinWER(dataset[i]["reference"], dataset[i]["hypB"], metric, threshold, memory)
+            scoreA = MinWER(dataset[i]["reference"], dataset[i]["hypA"], metric, threshold, save, memory)
+            scoreB = MinWER(dataset[i]["reference"], dataset[i]["hypB"], metric, threshold, save, memory)
             if (scoreA < scoreB and nbrA > nbrB) or (scoreB < scoreA and nbrB > nbrA):
                 correct += 1
             elif scoreA == scoreB:
@@ -164,6 +179,10 @@ def evaluator(metric, dataset, threshold, memory, certitude=0.7, verbose=True):
             continue
         else:
             ignored += 1
+    # storing scores save
+    with open("pickle/SD_sent_camembase.pickle", "wb") as handle:
+        pickle.dump(save, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
     print()
     print("correct:", correct)
     print("egal:", egal)
@@ -190,8 +209,9 @@ if __name__ == '__main__':
     metric = semdist
     
 
-    for threshold in numpy.arange(0, 0.11, 0.05):
-        threshold = int(threshold*10)/10
+    #for threshold in numpy.arange(0.02, 0.10, 0.02):
+    for threshold in [0.005, 0.01, 0.015, 0.025, 0.03]:
+        threshold = int(threshold*1000)/1000
         x = evaluator(metric, dataset, threshold, memory, certitude=1)
         y = evaluator(metric, dataset, threshold, memory, certitude=0.7)
         write("SD_sent_camembase", threshold, x, y)
