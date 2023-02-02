@@ -84,7 +84,7 @@ def correcter(ref, hyp, corrected, errors):
 def bertscore(ref, hyp, memory):
     scorer = memory
     P, R, F1 = scorer.score([hyp], [ref])
-    return 100-F1*100
+    return 1-F1
 
 """
 def semdist(ref, hyp, memory):
@@ -155,7 +155,7 @@ def evaluator(metric, dataset, threshold, memory, certitude=0.7, verbose=True):
 
     # recover scores save
     try:
-        with open("pickle/bertscore.pickle", "rb") as handle:
+        with open("pickle/bertscore_rescale.pickle", "rb") as handle:
             save = pickle.load(handle)
     except FileNotFoundError:
         save = dict()
@@ -187,7 +187,7 @@ def evaluator(metric, dataset, threshold, memory, certitude=0.7, verbose=True):
         else:
             ignored += 1
     # storing scores save
-    with open("pickle/bertscore.pickle", "wb") as handle:
+    with open("pickle/bertscore_rescale.pickle", "wb") as handle:
         pickle.dump(save, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     print()
@@ -217,7 +217,7 @@ if __name__ == '__main__':
     metric = semdist
     """
     from bert_score import BERTScorer
-    memory = BERTScorer(lang="fr")
+    memory = BERTScorer(lang="fr", rescale_with_baseline=True)
     metric = bertscore
     
 
@@ -227,5 +227,5 @@ if __name__ == '__main__':
         threshold = int(threshold*10000)/10000
         x = evaluator(metric, dataset, threshold, memory, certitude=1)
         y = evaluator(metric, dataset, threshold, memory, certitude=0.7)
-        write("bertscore", threshold, x, y)
+        write("bertscore_rescale", threshold, x, y)
 
