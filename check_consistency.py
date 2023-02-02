@@ -108,7 +108,12 @@ def MinWER(ref, hyp, metric, threshold, save, memory):
     # level = {000}
     if distance <= __MAX__: # to limit the size of graph
         minwer = 0
-        while minwer < distance:
+        gain = dict()
+        for i in range(distance):
+            gain[i] = []
+        # how to do? Keep the previous?
+        # Look at the next_level, we can do something with it...
+        while minwer <= distance:
             for node in level:
                 corrected_hyp = correcter(ref, hyp, node, base_errors)
                 # optimization to avoid recomputation
@@ -162,7 +167,6 @@ def evaluator(metric, dataset, threshold, memory, verbose=True):
         nbrA = dataset[i]["nbrA"]
         nbrB = dataset[i]["nbrB"]
         
-        accepted += 1
         scoreA = MinWER(dataset[i]["reference"], dataset[i]["hypA"], metric, threshold, save, memory)
         scoreB = MinWER(dataset[i]["reference"], dataset[i]["hypB"], metric, threshold, save, memory)
         
@@ -176,7 +180,6 @@ if __name__ == '__main__':
     print("Reading dataset...")
     dataset = read_dataset("hats.txt")
 
-    """
     import jiwer
     memory = 0
     metric = wer
@@ -187,10 +190,11 @@ if __name__ == '__main__':
     memory = model
     metric = semdist
     """
+    """
     from bert_score import BERTScorer
     memory = BERTScorer(lang="fr", rescale_with_baseline=True)
     metric = bertscore
     """
     
-
+    evaluator(metric, dataset, 0.2, memory)
 
