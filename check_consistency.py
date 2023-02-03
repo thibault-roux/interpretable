@@ -113,7 +113,11 @@ def MinWER(ref, hyp, metric, threshold, save, memory):
             gain[i] = []
         # how to do? Keep the previous?
         # Look at the next_level, we can do something with it...
+        prev_level = level
         while minwer <= distance:
+            # compare 000 et 100, 010, 001 (on peut faire un genre de soustraction)
+            # problem: at the first step, there is no previous level
+            # we should compute a score between the ref and hypothesis (not corrected) outside of the while
             for node in level:
                 corrected_hyp = correcter(ref, hyp, node, base_errors)
                 # optimization to avoid recomputation
@@ -126,7 +130,8 @@ def MinWER(ref, hyp, metric, threshold, save, memory):
                     save[ref][corrected_hyp] = score
                 if score < threshold: # lower-is-better
                     return minwer
-            level = get_next_level(level)
+            prev_level = level
+            level = get_next_level(prev_level)
             minwer += 1
         return distance
     else:
