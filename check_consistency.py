@@ -105,19 +105,27 @@ def MinWER(ref, hyp, metric, threshold, save, memory):
     level = {''.join(str(x) for x in [0]*distance)}
     # base_errors = ['esieed']
     # distance = 3
-    # level = {000}
+    # level = {000}     1: {00}     2: {01, 10}     3: {11}
+
+    # dict[modif] = [gain1, gain2]
+    # store previous score
     if distance <= __MAX__: # to limit the size of graph
         minwer = 0
-        gain = dict()
-        for i in range(distance):
-            gain[i] = []
-        # how to do? Keep the previous?
-        # Look at the next_level, we can do something with it...
-        prev_level = level
+
+        # 101
+        # 111
+        # I should store all scores in a dico of dico == dico[level][modif] = score
+
+        ALL_scores = dict()
+        for d in range(distance+1):
+            ALL_scores[d] = dict()
+
         while minwer <= distance:
             # compare 000 et 100, 010, 001 (on peut faire un genre de soustraction)
             # problem: at the first step, there is no previous level
             # we should compute a score between the ref and hypothesis (not corrected) outside of the while
+            
+            #print("LEVEL :", minwer)
             for node in level:
                 corrected_hyp = correcter(ref, hyp, node, base_errors)
                 # optimization to avoid recomputation
@@ -128,14 +136,34 @@ def MinWER(ref, hyp, metric, threshold, save, memory):
                     if ref not in save:
                         save[ref] = dict()
                     save[ref][corrected_hyp] = score
-                if score < threshold: # lower-is-better
-                    return minwer
-            prev_level = level
-            level = get_next_level(prev_level)
+                # print("\t", corrected_hyp, score)
+                ALL_scores[minwer][node] = score
+            
+            # print(ALL_scores)
+            level = get_next_level(level)
             minwer += 1
-        return distance
+
+        gains = dict()
+        for i in range(distance):
+            gains[i] = []
+        print(gains)
+        print(ALL_scores)
+        print(len(ALL_scores))
+        for minwer, dico1 in ALL_scores.items():
+            dico2 = ALL_scores[minwer+1]
+            for node2, score2 in dico2.items(): # node == modif == 001
+                for node1, score1 in dico1.items():
+                    if True:
+                        print()
+            print(minwer)
+        # ce que je veux:
+        # une liste des gains d'une modification
+        # pour chaque modification possible
+        input()
+        
+        return ALL_scores
     else:
-        return distance
+        return None
         
 
 
@@ -185,6 +213,7 @@ if __name__ == '__main__':
     print("Reading dataset...")
     dataset = read_dataset("hats.txt")
 
+    """
     import jiwer
     memory = 0
     metric = wer
@@ -195,11 +224,11 @@ if __name__ == '__main__':
     memory = model
     metric = semdist
     """
-    """
     from bert_score import BERTScorer
     memory = BERTScorer(lang="fr", rescale_with_baseline=True)
     metric = bertscore
     """
     
-    evaluator(metric, dataset, 0.2, memory)
+    print()
+    evaluator(metric, dataset, 0.2, memory, verbose=False)
 
