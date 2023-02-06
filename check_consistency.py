@@ -146,25 +146,60 @@ def MinWER(ref, hyp, metric, threshold, save, memory):
         gains = dict()
         for i in range(distance):
             gains[i] = []
-        print(gains)
+        """print(gains)
         print(ALL_scores)
-        print(len(ALL_scores))
+        print(len(ALL_scores))"""
         for minwer, dico1 in ALL_scores.items():
-            dico2 = ALL_scores[minwer+1]
-            for node2, score2 in dico2.items(): # node == modif == 001
-                for node1, score1 in dico1.items():
-                    if True:
-                        print()
-            print(minwer)
+            if minwer+1 < len(ALL_scores):
+                dico2 = ALL_scores[minwer+1]
+                for node2, score2 in dico2.items(): # node == modif == 001
+                    for node1, score1 in dico1.items():
+                        child, m = is_child(node1, node2)
+                        if child: # is_child()
+                            gain = score2 - score1
+                            gains[m].append(gain)
+
+                            """print("It is a child!")
+                            corrected_hyp1 = correcter(ref, hyp, node1, base_errors)
+                            corrected_hyp2 = correcter(ref, hyp, node2, base_errors)
+                            print(corrected_hyp1)
+                            print(corrected_hyp2)
+                            print(gain)"""
+            # print(minwer)
         # ce que je veux:
         # une liste des gains d'une modification
         # pour chaque modification possible
-        input()
+        #print(gains)
+        #input()
         
-        return ALL_scores
+        return gains # ALL_scores
     else:
-        return None
-        
+        return None # TO RESOLVE AS IT IS NOT A LIST
+
+def is_child(node1, node2):
+    """print("\nis_child()")
+    print(node1)
+    print(type(node1))
+    print(node2)
+    print(type(node2))"""
+
+    node1 = list(int(c) for c in node1)
+    node2 = list(int(c) for c in node2)
+    zero = 0
+    one = 0
+    for i in range(len(node1)):
+        val = node2[i] - node1[i]
+        if val == 0:
+            zero += 1
+        elif val == 1:
+            one += 1
+            index = i
+        else:
+            return False, -999
+    if zero == len(node1)-1 and one == 1:
+        return True, index
+    else:
+        raise("Unexpected error. Check node1 and node2:\n" + str(node1) + "\n" + str(node2))
 
 
 
@@ -187,11 +222,12 @@ def read_dataset(dataname):
 def evaluator(metric, dataset, threshold, memory, verbose=True):
     # recover scores save
     try:
-        with open("pickle/SD_sent_camemlarger.pickle", "rb") as handle:
+        with open("pickle/SD_sent_camemlarge.pickle", "rb") as handle:
             save = pickle.load(handle)
     except FileNotFoundError:
         save = dict()
 
+    total_gain = []
     if verbose:
         bar = progressbar.ProgressBar(max_value=len(dataset))
     for i in range(len(dataset)):
@@ -200,14 +236,33 @@ def evaluator(metric, dataset, threshold, memory, verbose=True):
         nbrA = dataset[i]["nbrA"]
         nbrB = dataset[i]["nbrB"]
         
-        scoreA = MinWER(dataset[i]["reference"], dataset[i]["hypA"], metric, threshold, save, memory)
-        scoreB = MinWER(dataset[i]["reference"], dataset[i]["hypB"], metric, threshold, save, memory)
-        
+        gains1 = MinWER(dataset[i]["reference"], dataset[i]["hypA"], metric, threshold, save, memory)
+        gains2 = MinWER(dataset[i]["reference"], dataset[i]["hypB"], metric, threshold, save, memory)
+
+        if gains1 is not None:
+            for k, gains in gains1.items():
+                total_gain.append(gains)
+        if gains2 is not None:
+            for k, gains in gains2.items():
+                total_gain.append(gains)
+    
+    with open("pickle/total_gain.pickle", "wb") as handle:
+        pickle.dump(total_gain, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    # compute average of standard deviations for each gains
+    print("Computing average of standard deviations for each gains...")
+    stds = []
+    for gains in total_gain:
+        stds.append(numpy.std(gains))
+    print(stds)
+    avg_std = sum(stds)/len(stds) # average of standard deviation
+    print("Average of standard deviation:", avg_std)
+
     # storing scores save
     with open("pickle/SD_sent_camemlarge.pickle", "wb") as handle:
         pickle.dump(save, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    return 
+    return avg_std
 
 if __name__ == '__main__':
     print("Reading dataset...")
@@ -230,5 +285,5 @@ if __name__ == '__main__':
     """
     
     print()
-    evaluator(metric, dataset, 0.2, memory, verbose=False)
+    evaluator(metric, dataset, 0.2, memory, verbose=True)
 
