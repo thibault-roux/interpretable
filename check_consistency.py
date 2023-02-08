@@ -81,12 +81,10 @@ def correcter(ref, hyp, corrected, errors):
         i += 1
     return new_hyp[:-1]
 
-"""
 def bertscore(ref, hyp, memory):
     scorer = memory
     P, R, F1 = scorer.score([hyp], [ref])
-    return 1-F1
-"""
+    return 1-F1.item()
 
 def semdist(ref, hyp, memory):
     model = memory
@@ -222,7 +220,7 @@ def read_dataset(dataname):
 def evaluator(metric, dataset, threshold, memory, verbose=True):
     # recover scores save
     try:
-        with open("pickle/SD_sent_camemlarge.pickle", "rb") as handle:
+        with open("pickle/bertscore_rescale.pickle", "rb") as handle:
             save = pickle.load(handle)
     except FileNotFoundError:
         save = dict()
@@ -259,7 +257,7 @@ def evaluator(metric, dataset, threshold, memory, verbose=True):
     print("Average of standard deviation:", avg_std)
 
     # storing scores save
-    with open("pickle/SD_sent_camemlarge.pickle", "wb") as handle:
+    with open("pickle/bertscore_rescale.pickle", "wb") as handle:
         pickle.dump(save, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     return avg_std
@@ -273,16 +271,17 @@ if __name__ == '__main__':
     memory = 0
     metric = wer
     """
+    """
     from sentence_transformers import SentenceTransformer
     from sklearn.metrics.pairwise import cosine_similarity
-    model = SentenceTransformer('dangvantuan/sentence-camembert-large')
+    model = SentenceTransformer('dangvantuan/sentence-camembert-base')
     memory = model
     metric = semdist
     """
     from bert_score import BERTScorer
     memory = BERTScorer(lang="fr", rescale_with_baseline=True)
     metric = bertscore
-    """
+    
     
     print()
     evaluator(metric, dataset, 0.2, memory, verbose=True)
