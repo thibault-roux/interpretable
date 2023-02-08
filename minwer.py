@@ -222,8 +222,9 @@ if __name__ == '__main__':
     
 
     #for threshold in [0.005, 0.01, 0.015, 0.025, 0.03]:
+    #for threshold in numpy.arange(0, 0.5, 0.1):
     #for threshold in numpy.arange(0.001, 0.08, 0.001):
-    for threshold in numpy.arange(0, 0.5, 0.1):
+    for threshold in numpy.arange(0.080, 0.186, 0.001):
         threshold = int(threshold*10000)/10000
         x = evaluator(metric, dataset, threshold, memory, certitude=1)
         y = evaluator(metric, dataset, threshold, memory, certitude=0.7)
