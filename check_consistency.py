@@ -96,7 +96,7 @@ def semdist(ref, hyp, memory):
 def wer(ref, hyp, memory):
     return jiwer.wer(ref, hyp)
 
-def MinWER(ref, hyp, metric, threshold, save, memory):
+def MinWER(ref, hyp, metric, save, memory):
     __MAX__ = 10 # maximum distance to avoid too high computational cost
     errors, distance = awer.wer(ref.split(" "), hyp.split(" "))
     base_errors = ''.join(errors)
@@ -234,8 +234,8 @@ def evaluator(metric, dataset, memory, picklename_metric, picklegains, verbose=T
         nbrA = dataset[i]["nbrA"]
         nbrB = dataset[i]["nbrB"]
         
-        gains1 = MinWER(dataset[i]["reference"], dataset[i]["hypA"], metric, threshold, save, memory)
-        gains2 = MinWER(dataset[i]["reference"], dataset[i]["hypB"], metric, threshold, save, memory)
+        gains1 = MinWER(dataset[i]["reference"], dataset[i]["hypA"], metric, save, memory)
+        gains2 = MinWER(dataset[i]["reference"], dataset[i]["hypB"], metric, save, memory)
 
         if gains1 is not None:
             for k, gains in gains1.items():
@@ -272,9 +272,9 @@ if __name__ == '__main__':
 
     # choice = "wer"
     # choice = "bertscore"
-    choice = "bertscore_rescale"
+    # choice = "bertscore_rescale"
     # choice = "SD_sent_camembase"
-    # choice = "SD_sent_camemlarge"
+    choice = "SD_sent_camemlarge"
     
 
     if choice == "wer":
@@ -283,19 +283,19 @@ if __name__ == '__main__':
         metric = wer
         picklename_metric = "pickle/wer.pickle"
         picklegains = "pickle/wer_total_gain.pickle"
-    elif choice = "bertscore":
+    elif choice == "bertscore":
         from bert_score import BERTScorer
         memory = BERTScorer(lang="fr")
         metric = bertscore
         picklename_metric = "pickle/bertscore.pickle"
         picklegains = "pickle/bertscore_total_gain.pickle"
-    elif choice = "bertscore_rescale":
+    elif choice == "bertscore_rescale":
         from bert_score import BERTScorer
         memory = BERTScorer(lang="fr", rescale_with_baseline=True)
         metric = bertscore
         picklename_metric = "pickle/bertscore_rescale.pickle"
         picklegains = "pickle/bertscore_rescale_total_gain.pickle"
-    elif choice = "SD_sent_camembase":
+    elif choice == "SD_sent_camembase":
         from sentence_transformers import SentenceTransformer
         from sklearn.metrics.pairwise import cosine_similarity
         model = SentenceTransformer('dangvantuan/sentence-camembert-base')
@@ -303,7 +303,7 @@ if __name__ == '__main__':
         metric = semdist
         picklename_metric = "pickle/SD_sent_camembase.pickle"
         picklegains = "pickle/SD_sent_camembase_total_gain.pickle"
-    elif choice = "SD_sent_camemlarge":
+    elif choice == "SD_sent_camemlarge":
         from sentence_transformers import SentenceTransformer
         from sklearn.metrics.pairwise import cosine_similarity
         model = SentenceTransformer('dangvantuan/sentence-camembert-large')
