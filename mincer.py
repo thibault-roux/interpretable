@@ -146,12 +146,24 @@ def read_dataset(dataname):
             dataset.append(dictionary)
     return dataset
 
-def evaluator(metric, dataset, threshold, memory, certitude=0.7, picklename_metric, verbose=True):
+def evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=0.7, verbose=True):
     ignored = 0
     accepted = 0
     correct = 0
     incorrect = 0
     egal = 0
+
+
+
+    from termcolor import colored
+    class bcolors:
+        BLUE    = '\033[94m'
+        RED     = '\033[91m'
+        YELLOW  = '\033[93m'
+        ENDC    = '\033[0m'
+    from jiwer import cer
+
+
 
     # recover scores save
     try:
@@ -177,6 +189,49 @@ def evaluator(metric, dataset, threshold, memory, certitude=0.7, picklename_metr
             accepted += 1
             scoreA = MinWER(dataset[i]["reference"], dataset[i]["hypA"], metric, threshold, save, memory)
             scoreB = MinWER(dataset[i]["reference"], dataset[i]["hypB"], metric, threshold, save, memory)
+
+            cerA = cer(dataset[i]["reference"], dataset[i]["hypA"])
+            cerB = cer(dataset[i]["reference"], dataset[i]["hypB"])
+
+            # check if stateCER > stateMinCER
+            stateCER = 0 # 0 = incorrect, 1 = egal, 2 = correct
+            stateMinCER = 0 # 0 = incorrect, 1 = egal, 2 = correct
+            
+            if (scoreA < scoreB and nbrA > nbrB) or (scoreB < scoreA and nbrB > nbrA):
+                stateMinCER = 2
+            elif scoreA == scoreB:
+                stateMinCER = 1
+            else:
+                stateMinCER = 0
+
+            if (cerA < cerB and nbrA > nbrB) or (cerB < cerA and nbrB > nbrA):
+                stateCER = 2
+            elif cerA == cerB:
+                stateCER = 1
+            else:
+                stateCER = 0
+
+            if stateMinCER > stateCER:
+                # good for minCER
+                print(bcolors.BLUE)
+            elif stateMinCER == stateCER:
+                # no progress
+                print(bcolors.YELLOW)
+            elif stateMinCER < stateCER:
+                # no good
+                print(bcolors.RED)
+            else:
+                # unexpected error
+                print(1/0)
+                exit(-1)
+            
+            print(dataset[i]["reference"])
+            print(dataset[i]["hypA"])
+            print(bcolors.ENDC)
+            input()
+
+
+            """
             if (scoreA < scoreB and nbrA > nbrB) or (scoreB < scoreA and nbrB > nbrA):
                 correct += 1
             elif scoreA == scoreB:
@@ -184,6 +239,7 @@ def evaluator(metric, dataset, threshold, memory, certitude=0.7, picklename_metr
             else:
                 incorrect += 1
             continue
+            """
         else:
             ignored += 1
     # storing scores save
@@ -204,11 +260,11 @@ if __name__ == '__main__':
     dataset = read_dataset("hats.txt")
 
     
-    # choice = "wer"
+    choice = "wer"
     # choice = "bertscore"
     # choice = "bertscore_rescale"
     # choice = "SD_sent_camembase"
-    choice = "SD_sent_camemlarge"
+    # choice = "SD_sent_camemlarge"
     
 
     if choice == "wer":
@@ -245,9 +301,9 @@ if __name__ == '__main__':
     
     print()    
     threshold = 0.1
-    x = evaluator(metric, dataset, threshold, memory, certitude=1, picklename_metric)
-    y = evaluator(metric, dataset, threshold, memory, certitude=0.7, picklename_metric)
-
+    x = evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=1)
+    y = evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=0.7)
+    
     #for threshold in [0.005, 0.01, 0.015, 0.025, 0.03]:
     #for threshold in numpy.arange(0, 0.5, 0.1):
     #for threshold in numpy.arange(0.001, 0.08, 0.001):
