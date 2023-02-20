@@ -146,7 +146,7 @@ def read_dataset(dataname):
             dataset.append(dictionary)
     return dataset
 
-def evaluator(metric, dataset, threshold, memory, certitude=0.7, verbose=True):
+def evaluator(metric, dataset, threshold, memory, certitude=0.7, picklename_metric, verbose=True):
     ignored = 0
     accepted = 0
     correct = 0
@@ -155,7 +155,7 @@ def evaluator(metric, dataset, threshold, memory, certitude=0.7, verbose=True):
 
     # recover scores save
     try:
-        with open("pickle/wer.pickle", "rb") as handle:
+        with open(picklename_metric, "rb") as handle:
             save = pickle.load(handle)
     except FileNotFoundError:
         save = dict()
@@ -187,7 +187,7 @@ def evaluator(metric, dataset, threshold, memory, certitude=0.7, verbose=True):
         else:
             ignored += 1
     # storing scores save
-    with open("pickle/wer.pickle", "wb") as handle:
+    with open(picklename_metric, "wb") as handle:
         pickle.dump(save, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     print()
@@ -204,25 +204,49 @@ if __name__ == '__main__':
     dataset = read_dataset("hats.txt")
 
     
-    import jiwer
-    memory = 0
-    metric = wer
-    """
-    from sentence_transformers import SentenceTransformer
-    from sklearn.metrics.pairwise import cosine_similarity
-    model = SentenceTransformer('dangvantuan/sentence-camembert-large')
-    memory = model
-    metric = semdist
-    """
-    """
-    from bert_score import BERTScorer
-    memory = BERTScorer(lang="fr", rescale_with_baseline=True)
-    metric = bertscore
-    """
+    # choice = "wer"
+    # choice = "bertscore"
+    # choice = "bertscore_rescale"
+    # choice = "SD_sent_camembase"
+    choice = "SD_sent_camemlarge"
     
+
+    if choice == "wer":
+        import jiwer
+        memory = 0
+        metric = wer
+        picklename_metric = "pickle/wer.pickle"
+    elif choice == "bertscore":
+        from bert_score import BERTScorer
+        memory = BERTScorer(lang="fr")
+        metric = bertscore
+        picklename_metric = "pickle/bertscore.pickle"
+    elif choice == "bertscore_rescale":
+        from bert_score import BERTScorer
+        memory = BERTScorer(lang="fr", rescale_with_baseline=True)
+        metric = bertscore
+        picklename_metric = "pickle/bertscore_rescale.pickle"
+    elif choice == "SD_sent_camembase":
+        from sentence_transformers import SentenceTransformer
+        from sklearn.metrics.pairwise import cosine_similarity
+        model = SentenceTransformer('dangvantuan/sentence-camembert-base')
+        memory = model
+        metric = semdist
+        picklename_metric = "pickle/SD_sent_camembase.pickle"
+    elif choice == "SD_sent_camemlarge":
+        from sentence_transformers import SentenceTransformer
+        from sklearn.metrics.pairwise import cosine_similarity
+        model = SentenceTransformer('dangvantuan/sentence-camembert-large')
+        memory = model
+        metric = semdist
+        picklename_metric = "pickle/SD_sent_camemlarge.pickle"
+    else:
+        raise Exception("Unknown choice: ", choice)
+    
+    print()    
     threshold = 0.1
-    x = evaluator(metric, dataset, threshold, memory, certitude=1)
-    y = evaluator(metric, dataset, threshold, memory, certitude=0.7)
+    x = evaluator(metric, dataset, threshold, memory, certitude=1, picklename_metric)
+    y = evaluator(metric, dataset, threshold, memory, certitude=0.7, picklename_metric)
 
     #for threshold in [0.005, 0.01, 0.015, 0.025, 0.03]:
     #for threshold in numpy.arange(0, 0.5, 0.1):
