@@ -37,7 +37,7 @@ def get_next_level(prev_level):
                 level.add(''.join(str(x) for x in new_errors)) # add list (converted to string)
     return level
 
-def correcter(ref, hyp, corrected, errors):
+def correcter_mincer(ref, hyp, corrected, errors):
     # ref, hyp, corrected (100), errors (deesei)
 
     # ref = ref.split(" ")
@@ -86,19 +86,17 @@ def bertscore(ref, hyp, memory):
     P, R, F1 = scorer.score([hyp], [ref])
     return 1-F1
 
-"""
 def semdist(ref, hyp, memory):
     model = memory
     ref_projection = model.encode(ref).reshape(1, -1)
     hyp_projection = model.encode(hyp).reshape(1, -1)
     score = cosine_similarity(ref_projection, hyp_projection)[0][0]
     return (1-score) # lower is better
-"""
 
 def wer(ref, hyp, memory):
     return jiwer.wer(ref, hyp)
 
-def MinWER(ref, hyp, metric, threshold, save, memory):
+def MinCER(ref, hyp, metric, threshold, save, memory):
     __MAX__ = 15 # maximum distance to avoid too high computational cost
     errors, distance = awer.wer(ref, hyp)
     base_errors = ''.join(errors)
@@ -107,10 +105,10 @@ def MinWER(ref, hyp, metric, threshold, save, memory):
     # distance = 3
     # level = {000}
     if distance <= __MAX__: # to limit the size of graph
-        minwer = 0
-        while minwer < distance:
+        mincer = 0
+        while mincer < distance:
             for node in level:
-                corrected_hyp = correcter(ref, hyp, node, base_errors)
+                corrected_hyp = correcter_mincer(ref, hyp, node, base_errors)
                 # optimization to avoid recomputation
                 try:
                     score = save[ref][corrected_hyp]
@@ -120,9 +118,9 @@ def MinWER(ref, hyp, metric, threshold, save, memory):
                         save[ref] = dict()
                     save[ref][corrected_hyp] = score
                 if score < threshold: # lower-is-better
-                    return minwer
+                    return mincer
             level = get_next_level(level)
-            minwer += 1
+            mincer += 1
         return distance
     else:
         return distance
@@ -155,6 +153,7 @@ def evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=0
 
 
 
+    """
     from termcolor import colored
     class bcolors:
         BLUE    = '\033[94m'
@@ -162,6 +161,7 @@ def evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=0
         YELLOW  = '\033[93m'
         ENDC    = '\033[0m'
     from jiwer import cer
+    """
 
 
 
@@ -187,11 +187,12 @@ def evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=0
         c = maximum/(nbrA+nbrB)
         if c >= certitude: # if humans are certain about choice
             accepted += 1
-            scoreA = MinWER(dataset[i]["reference"], dataset[i]["hypA"], metric, threshold, save, memory)
-            scoreB = MinWER(dataset[i]["reference"], dataset[i]["hypB"], metric, threshold, save, memory)
+            scoreA = MinCER(dataset[i]["reference"], dataset[i]["hypA"], metric, threshold, save, memory)
+            scoreB = MinCER(dataset[i]["reference"], dataset[i]["hypB"], metric, threshold, save, memory)
 
-            cerA = cer(dataset[i]["reference"], dataset[i]["hypA"])
-            cerB = cer(dataset[i]["reference"], dataset[i]["hypB"])
+            """
+            cerA = int(cer(dataset[i]["reference"], dataset[i]["hypA"])*len(dataset[i]["reference"]))
+            cerB = int(cer(dataset[i]["reference"], dataset[i]["hypB"])*len(dataset[i]["reference"]))
 
             # check if stateCER > stateMinCER
             stateCER = 0 # 0 = incorrect, 1 = egal, 2 = correct
@@ -226,12 +227,13 @@ def evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=0
                 exit(-1)
             
             print(dataset[i]["reference"])
-            print(dataset[i]["hypA"])
+            print(nbrA, scoreA, cerA, dataset[i]["hypA"])
+            print(nbrB, scoreB, cerB, dataset[i]["hypB"])
             print(bcolors.ENDC)
             input()
-
-
             """
+
+
             if (scoreA < scoreB and nbrA > nbrB) or (scoreB < scoreA and nbrB > nbrA):
                 correct += 1
             elif scoreA == scoreB:
@@ -239,7 +241,6 @@ def evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=0
             else:
                 incorrect += 1
             continue
-            """
         else:
             ignored += 1
     # storing scores save
@@ -253,18 +254,18 @@ def evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=0
     return correct, egal, incorrect
 
 def write(namefile, threshold, x, y):
-    with open("results/" + namefile + ".txt", "a", encoding="utf8") as file:
+    with open("results/MINCER/" + namefile + ".txt", "a", encoding="utf8") as file:
         file.write(namefile + "," + str(threshold) + "," + str(x) + "," + str(y) + "\n")
 
 if __name__ == '__main__':
     dataset = read_dataset("hats.txt")
 
     
-    choice = "wer"
+    # choice = "wer"
     # choice = "bertscore"
     # choice = "bertscore_rescale"
     # choice = "SD_sent_camembase"
-    # choice = "SD_sent_camemlarge"
+    choice = "SD_sent_camemlarge"
     
 
     if choice == "wer":
@@ -300,17 +301,13 @@ if __name__ == '__main__':
         raise Exception("Unknown choice: ", choice)
     
     print()    
-    threshold = 0.1
-    x = evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=1)
-    y = evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=0.7)
     
     #for threshold in [0.005, 0.01, 0.015, 0.025, 0.03]:
-    #for threshold in numpy.arange(0, 0.5, 0.1):
-    #for threshold in numpy.arange(0.001, 0.08, 0.001):
-    """
-    for threshold in numpy.arange(0.080, 0.186, 0.001):
-        threshold = int(threshold*10000)/10000
-        x = evaluator(metric, dataset, threshold, memory, certitude=1)
-        y = evaluator(metric, dataset, threshold, memory, certitude=0.7)
-        write("bertscore_rescale", threshold, x, y)
-    """
+    #for threshold in numpy.arange(0.006, 0.015, 0.002):
+    for threshold in numpy.arange(0.015, 0.025, 0.0004):
+        threshold = int(threshold*100000)/100000
+        if threshold != 0.01:
+            x = evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=1)
+            y = evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=0.7)
+            write(choice, threshold, x, y)
+    
