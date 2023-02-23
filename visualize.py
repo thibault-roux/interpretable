@@ -1,4 +1,6 @@
 import aligned_wer as awer
+from rich.console import Console
+from rich.text import Text
 
 # We want to visualize word gravity
 
@@ -119,31 +121,33 @@ def wer(ref, hyp, memory):
     return jiwer.wer(ref, hyp)
 
 def get_index(inode, gainid):
-    #gainid = gainid.copy()
-    print(inode, gainid)
+    gainid = gainid.copy()
     gainid[inode] = 1
     return ''.join(str(e) for e in gainid)
 
 if __name__ == '__main__':
     # ref = input("Reference: ")
     # hyp = input("Hypothesis: ")
-    ref = "salut ça va mon beau"
-    hyp = "salut va toi mon beau"
+    ref = "on fait des maths pour le plaisir"
+    hyp = "on fête des math pour plaisir"
 
     # find word with error. Insert a token for deletion?
 
     errors, distance = awer.wer(ref.split(" "), hyp.split(" "))
 
-    """
+    
     from sentence_transformers import SentenceTransformer
     from sklearn.metrics.pairwise import cosine_similarity
+    print("Loading model...")
     model = SentenceTransformer('dangvantuan/sentence-camembert-large')
+    print("Model loaded.")
     memory = model
     metric = semdist
     """
     import jiwer
     memory = 0
     metric = wer
+    """
 
     previous_score = metric(ref, hyp, memory)
     base_errors = ''.join(errors)
@@ -151,33 +155,36 @@ if __name__ == '__main__':
     level = get_next_level(level)
     gains = dict()
     for node in level:
-        print("node = ", node)
         corrected_hyp = correcter(ref, hyp, node, base_errors)
         score = metric(ref, corrected_hyp, memory)
-        gains[node] = previous_score - score
+        gains[node] = int((previous_score - score)*10000)/100
         # save score and compare
-    
-    print("gains = ", gains)
 
+    console = Console()
     # print
     hyp = hyp.split(" ")
-    newhyp = ""
     ih = 0
     inode = 0
     gainid = [0]*distance
     for i in range(len(errors)):
         error = errors[i]
         if error == "d":
-            newhyp += bcolors.RED + "ε" + bcolors.ENDC + "("+str(gains[get_index(inode, gainid)])+")" + " "
+            gain = gains[get_index(inode, gainid)]
+            console.print("ε", style="rgb(255,0,0)", end="")
+            print("("+str(gain), end=") ")
+            inode += 1
         elif error == "e":
-            newhyp += bcolors.BLUE + hyp[ih] + bcolors.ENDC + " "
+            console.print(hyp[ih], style="rgb(0,0,255)", end=" ")
             ih += 1
         elif error == "s" or error == "i":
-            newhyp += bcolors.RED + hyp[ih] + bcolors.ENDC + "("+str(gains[get_index(inode, gainid)])+")" + " "
+            gain = gains[get_index(inode, gainid)]
+            console.print(hyp[ih], style="rgb(255,0,0)", end="")
+            print("("+str(gain), end=") ")
             ih += 1
+            inode += 1
         else:
             raise Exception("Unexpected error: " + error)
-    print(newhyp)
+    print()
 
     # we do not want all possibilities from a level
     # we just want the possibilities given one

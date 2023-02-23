@@ -12,11 +12,6 @@ import pickle
 
 
 
-# DONE - 1) compute the number of errors in the dataset
-# 2) compute the partial graph when computations is too excessive
-# 3) reformulate the problem with boolean vector
-
-
 
 def get_next_level(prev_level):
     # Will compute all possibilities for the next level of the graph.
