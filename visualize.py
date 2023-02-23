@@ -2,49 +2,6 @@ import aligned_wer as awer
 from rich.console import Console
 from rich.text import Text
 
-# We want to visualize word gravity
-
-# how ?
-# we know that some corrections implies better gains
-
-
-def add_eps_ref(ref, errors):
-    ref = ref.split(" ")
-    newref = ""
-    ir = 0
-    for i in range(len(errors)):
-        error = errors[i]
-        if error == "i":
-            newref += bcolors.RED + "ε" + bcolors.ENDC + " "
-        elif error == "e":
-            newref += bcolors.BLUE + ref[ir] + bcolors.ENDC + " "
-            ir += 1
-        elif error == "s" or error == "d":
-            newref += bcolors.RED + ref[ir] + bcolors.ENDC + " "
-            ir += 1
-        else:
-            raise Exception("Unexpected error: " + error)
-    return newref[:-1]
-
-def add_eps_hyp(hyp, errors):
-    hyp = hyp.split(" ")
-    newhyp = ""
-    ih = 0
-    for i in range(len(errors)):
-        error = errors[i]
-        if error == "d":
-            newhyp += bcolors.RED + "ε" + bcolors.ENDC + " "
-        elif error == "e":
-            newhyp += bcolors.BLUE + hyp[ih] + bcolors.ENDC + " "
-            ih += 1
-        elif error == "s" or error == "i":
-            newhyp += bcolors.RED + hyp[ih] + bcolors.ENDC + " "
-            ih += 1
-        else:
-            raise Exception("Unexpected error: " + error)
-    return newhyp[:-1]
-
-
 def correcter(ref, hyp, corrected, errors):
     # ref, hyp, corrected (100), errors (deesei)
 
