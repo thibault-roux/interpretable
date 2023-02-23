@@ -129,6 +129,7 @@ if __name__ == '__main__':
     # ref = input("Reference: ")
     # hyp = input("Hypothesis: ")
     ref = "on fait des maths pour le plaisir"
+    # hyp = "ah là là, j'en peux plus debhqdjkzl"
     hyp = "on fête des math pour plaisir"
 
     # find word with error. Insert a token for deletion?
@@ -170,7 +171,8 @@ if __name__ == '__main__':
         error = errors[i]
         if error == "d":
             gain = gains[get_index(inode, gainid)]
-            console.print("ε", style="rgb(255,0,0)", end="")
+            c = int(max(0, min(255, -17*gain+255)))
+            console.print("ε", style="rgb(255," + str(c) + ",0)", end="")
             print("("+str(gain), end=") ")
             inode += 1
         elif error == "e":
@@ -178,7 +180,8 @@ if __name__ == '__main__':
             ih += 1
         elif error == "s" or error == "i":
             gain = gains[get_index(inode, gainid)]
-            console.print(hyp[ih], style="rgb(255,0,0)", end="")
+            c = int(max(0, min(255, -17*gain+255)))
+            console.print(hyp[ih], style="rgb(255," + str(c) + ",0)", end="")
             print("("+str(gain), end=") ")
             ih += 1
             inode += 1
