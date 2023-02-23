@@ -17,7 +17,6 @@ def correcter(ref, hyp, corrected, errors):
             new_hyp += ref[ir] + " "
             ih += 1
             ir += 1
-            # print("e\t", new_hyp)
         elif errors[i] == "i": # insertion corrected
             if corrected[INDEX] == '0': # if we do not correct the error
                 new_hyp += hyp[ih] + " " # the extra word is not deleted
@@ -27,10 +26,8 @@ def correcter(ref, hyp, corrected, errors):
         elif errors[i] == "d": # deletion
             if corrected[INDEX] == '1': # if we do correct the error
                 new_hyp += ref[ir] + " " # we add the missing word
-            # else  # we do not restaure the missing word
             ir += 1
             INDEX += 1
-            # print("d\t", new_hyp)
         elif errors[i] == "s": # substitution
             if corrected[INDEX] == '1':
                 new_hyp += ref[ir] + " "
@@ -39,7 +36,6 @@ def correcter(ref, hyp, corrected, errors):
             ih += 1
             ir += 1
             INDEX += 1
-            # print("s\t", new_hyp)
         else: 
             print("Error: the newhyp inputs 'errors' and 'new_errors' are expected to be string of e,s,i,d. Received", errors[i])
             exit(-1)
@@ -67,46 +63,8 @@ def get_next_level(prev_level):
     return level
 
 
-def semdist(ref, hyp, memory):
-    model = memory
-    ref_projection = model.encode(ref).reshape(1, -1)
-    hyp_projection = model.encode(hyp).reshape(1, -1)
-    score = cosine_similarity(ref_projection, hyp_projection)[0][0]
-    return (1-score) # lower is better
-
-def wer(ref, hyp, memory):
-    return jiwer.wer(ref, hyp)
-
-def get_index(inode, gainid):
-    gainid = gainid.copy()
-    gainid[inode] = 1
-    return ''.join(str(e) for e in gainid)
-
-if __name__ == '__main__':
-    # ref = input("Reference: ")
-    # hyp = input("Hypothesis: ")
-    ref = "on fait des maths pour le plaisir"
-    # hyp = "ah là là, j'en peux plus debhqdjkzl"
-    hyp = "on fête des math pour plaisir"
-
-    # find word with error. Insert a token for deletion?
-
+def visualize_words(ref, hyp, metric, memory):
     errors, distance = awer.wer(ref.split(" "), hyp.split(" "))
-
-    
-    from sentence_transformers import SentenceTransformer
-    from sklearn.metrics.pairwise import cosine_similarity
-    print("Loading model...")
-    model = SentenceTransformer('dangvantuan/sentence-camembert-large')
-    print("Model loaded.")
-    memory = model
-    metric = semdist
-    """
-    import jiwer
-    memory = 0
-    metric = wer
-    """
-
     previous_score = metric(ref, hyp, memory)
     base_errors = ''.join(errors)
     level = {''.join(str(x) for x in [0]*distance)}
@@ -119,7 +77,6 @@ if __name__ == '__main__':
         # save score and compare
 
     console = Console()
-    # print
     hyp = hyp.split(" ")
     ih = 0
     inode = 0
@@ -146,6 +103,43 @@ if __name__ == '__main__':
             raise Exception("Unexpected error: " + error)
     print()
 
-    # we do not want all possibilities from a level
-    # we just want the possibilities given one
+
+def semdist(ref, hyp, memory):
+    model = memory
+    ref_projection = model.encode(ref).reshape(1, -1)
+    hyp_projection = model.encode(hyp).reshape(1, -1)
+    score = cosine_similarity(ref_projection, hyp_projection)[0][0]
+    return (1-score) # lower is better
+
+def wer(ref, hyp, memory):
+    return jiwer.wer(ref, hyp)
+
+def get_index(inode, gainid):
+    gainid = gainid.copy()
+    gainid[inode] = 1
+    return ''.join(str(e) for e in gainid)
+
+
+if __name__ == '__main__':
+    # ref = input("Reference: ")
+    # hyp = input("Hypothesis: ")
+    ref = "on fait des maths pour le plaisir"
+    hyp = "on fête des math pour plaisir"
+
+    
+    from sentence_transformers import SentenceTransformer
+    from sklearn.metrics.pairwise import cosine_similarity
+    print("Loading model...")
+    model = SentenceTransformer('dangvantuan/sentence-camembert-large')
+    print("Model loaded.")
+    memory = model
+    metric = semdist
+    """
+    import jiwer
+    memory = 0
+    metric = wer
+    """
+
+    visualize_words(ref, hyp, metric, memory)    
+
     
