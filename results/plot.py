@@ -74,4 +74,4 @@ ax.stackplot(x, y)
 #       ylim=(0, 8), yticks=np.arange(1, 8))
 
 plt.show()
-plt.savefig("Plots/plot.png")
+plt.savefig("Plots/min"+mined+str(certitude)+".png")
