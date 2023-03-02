@@ -1,4 +1,5 @@
 import pickle
+import matplotlib.pyplot as plt
 from jiwer import wer, cer
 import numpy as np
 
@@ -56,12 +57,12 @@ if __name__ == '__main__':
     with open("../pickle/" + picklename_metric, "rb") as handle:
         save = pickle.load(handle)
 
+    
     from sentence_transformers import SentenceTransformer
     from sklearn.metrics.pairwise import cosine_similarity
     model = SentenceTransformer('dangvantuan/sentence-camembert-large')
     memory = model
     metric = semdist
-
 
 
     wers = []
@@ -75,32 +76,42 @@ if __name__ == '__main__':
                 embs.append(save[refs[i]][hyp]) # metric(refs[i], hyp))
             except KeyError:
                 print("Not found in pickle.")
-                embs.append(metric(refs[i], hyp, memory))
+                sem = metric(refs[i], hyp, memory)
+                if refs[i] not in save:
+                    save[refs[i]] = dict()
+                save[refs[i]][hyp] = sem
+                embs.append(sem)
 
-    """
-    print(embs)
+
+
+    with open("../pickle/" + picklename_metric, "wb") as handle:
+        pickle.dump(save, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
 
     wers = np.array(wers)
     cers = np.array(cers)
     embs = np.array(embs)
-
-    print(embs)
-    """
 
     x = np.arange(0, len(wers), 1)
     args = np.argsort(cers)
     wers = wers[args]
     cers = cers[args]
     embs = embs[args]
+
+    wers = wers[args]
+    cers = cers[args] + 1
+    embs = embs[args] + 2
     y = np.vstack([wers, cers, embs])
 
     fig, ax = plt.subplots()
 
-    ax.stackplot(x, y)
+    #label = {"wer": 0, "cer":0, "semdist":0}
+    ax.stackplot(x, y, labels=["wer", "cer", "semdist"])
+    ax.legend(loc='upper left')
 
 
-    """ax.set(xlim=(0, 0.25), xticks=np.arange(0, 0.25, 0.05),
-        ylim=(40, 100), yticks=np.arange(40, 101, 10))"""
+    ax.set(xlim=(0, 200), ylim=(0, 4)) # xticks=np.arange(0, 0.25, 0.05),
+    #    ylim=(40, 100), yticks=np.arange(40, 101, 10))"""
 
     plt.show()
     plt.savefig("plot.png")
