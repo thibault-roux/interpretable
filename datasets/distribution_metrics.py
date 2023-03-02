@@ -70,6 +70,8 @@ if __name__ == '__main__':
     embs = [] # metric embedding-based
     for i in range(len(refs)):
         for hyp in hyps[i]:
+            if np.random.rand(1,1)[0] > 0.33:
+                continue
             wers.append(wer(refs[i], hyp))
             cers.append(cer(refs[i], hyp))
             try:
@@ -89,35 +91,40 @@ if __name__ == '__main__':
 
 
     wers = np.array(wers)
-    cers = np.array(cers) + 1
-    embs = np.array(embs) + 2
+    cers = np.array(cers)
+    embs = np.array(embs)
 
     is_sorted = lambda a: np.all(a[:-1] <= a[1:])
 
     print("type:", type(cers[0]))
-    x = np.arange(0, len(wers), 1)
     args = np.argsort(cers)
 
     wers = wers[args]
     cers = cers[args]
     embs = embs[args]
-    print("type:", type(cers[0]))
 
-    print("cers sorted:", is_sorted(cers))
+    x = np.arange(0, len(wers), 1)
+    
 
-    wers = wers
-    cers = cers
-    embs = embs
-    y = np.vstack([wers, cers, embs])
+    print(len(wers))
+
+
+
+    #y = np.vstack([wers, cers, embs])
 
     fig, ax = plt.subplots()
 
     #label = {"wer": 0, "cer":0, "semdist":0}
-    ax.stackplot(x, y, labels=["wer", "cer", "semdist"])
+    #ax.stackplot(x, y, labels=["wer", "cer", "semdist"])
+    
+    ax.scatter(x, wers, s=10, c='blue', label="WER", alpha=0.4) #, edgecolors='black')
+    #ax.scatter(x, embs, s=10, c='green', label="SemDist", alpha=0.4) #, edgecolors='black')
+    #ax.scatter(x, cers, s=5, c='red', label="CER")
+    
     ax.legend(loc='upper left')
 
 
-    ax.set(xlim=(0, 200), ylim=(0, 4)) # xticks=np.arange(0, 0.25, 0.05),
+    ax.set(xlim=(0, len(x)), ylim=(0, 1.1)) # xticks=np.arange(0, 0.25, 0.05),
     #    ylim=(40, 100), yticks=np.arange(40, 101, 10))"""
 
     plt.show()
