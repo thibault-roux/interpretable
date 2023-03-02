@@ -89,18 +89,25 @@ if __name__ == '__main__':
 
 
     wers = np.array(wers)
-    cers = np.array(cers)
-    embs = np.array(embs)
+    cers = np.array(cers) + 1
+    embs = np.array(embs) + 2
 
+    is_sorted = lambda a: np.all(a[:-1] <= a[1:])
+
+    print("type:", type(cers[0]))
     x = np.arange(0, len(wers), 1)
     args = np.argsort(cers)
+
     wers = wers[args]
     cers = cers[args]
     embs = embs[args]
+    print("type:", type(cers[0]))
 
-    wers = wers[args]
-    cers = cers[args] + 1
-    embs = embs[args] + 2
+    print("cers sorted:", is_sorted(cers))
+
+    wers = wers
+    cers = cers
+    embs = embs
     y = np.vstack([wers, cers, embs])
 
     fig, ax = plt.subplots()
