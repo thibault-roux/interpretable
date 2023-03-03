@@ -81,14 +81,12 @@ def bertscore(ref, hyp, memory):
     P, R, F1 = scorer.score([hyp], [ref])
     return 1-F1
 
-"""
 def semdist(ref, hyp, memory):
     model = memory
     ref_projection = model.encode(ref).reshape(1, -1)
     hyp_projection = model.encode(hyp).reshape(1, -1)
     score = cosine_similarity(ref_projection, hyp_projection)[0][0]
     return (1-score) # lower is better
-"""
 
 def wer(ref, hyp, memory):
     return jiwer.wer(ref, hyp)
@@ -141,7 +139,7 @@ def read_dataset(dataname):
             dataset.append(dictionary)
     return dataset
 
-def evaluator(metric, dataset, threshold, memory, certitude=0.7, verbose=True):
+def evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=0.7, verbose=True):
     ignored = 0
     accepted = 0
     correct = 0
@@ -150,7 +148,7 @@ def evaluator(metric, dataset, threshold, memory, certitude=0.7, verbose=True):
 
     # recover scores save
     try:
-        with open("pickle/bertscore_rescale.pickle", "rb") as handle:
+        with open(picklename_metric, "rb") as handle:
             save = pickle.load(handle)
     except FileNotFoundError:
         save = dict()
@@ -199,29 +197,57 @@ if __name__ == '__main__':
     print("Reading dataset...")
     dataset = read_dataset("hats.txt")
 
-    """
-    import jiwer
-    memory = 0
-    metric = wer
-    """
-    """
-    from sentence_transformers import SentenceTransformer
-    from sklearn.metrics.pairwise import cosine_similarity
-    model = SentenceTransformer('dangvantuan/sentence-camembert-large')
-    memory = model
-    metric = semdist
-    """
-    from bert_score import BERTScorer
-    memory = BERTScorer(lang="fr", rescale_with_baseline=True)
-    metric = bertscore
+    # choice = "wer"
+    # choice = "bertscore"
+    # choice = "bertscore_rescale"
+    # choice = "SD_sent_camembase"
+    choice = "SD_sent_camemlarge"
     
+
+    if choice == "wer":
+        import jiwer
+        memory = 0
+        metric = wer
+        picklename_metric = "pickle/wer.pickle"
+    elif choice == "bertscore":
+        from bert_score import BERTScorer
+        memory = BERTScorer(lang="fr")
+        metric = bertscore
+        picklename_metric = "pickle/bertscore.pickle"
+    elif choice == "bertscore_rescale":
+        from bert_score import BERTScorer
+        memory = BERTScorer(lang="fr", rescale_with_baseline=True)
+        metric = bertscore
+        picklename_metric = "pickle/bertscore_rescale.pickle"
+    elif choice == "SD_sent_camembase":
+        from sentence_transformers import SentenceTransformer
+        from sklearn.metrics.pairwise import cosine_similarity
+        model = SentenceTransformer('dangvantuan/sentence-camembert-base')
+        memory = model
+        metric = semdist
+        picklename_metric = "pickle/SD_sent_camembase.pickle"
+    elif choice == "SD_sent_camemlarge":
+        from sentence_transformers import SentenceTransformer
+        from sklearn.metrics.pairwise import cosine_similarity
+        model = SentenceTransformer('dangvantuan/sentence-camembert-large')
+        memory = model
+        metric = semdist
+        picklename_metric = "pickle/SD_sent_camemlarge.pickle"
+    else:
+        raise Exception("Unknown choice: ", choice)
+    
+    print()
+    
+
+
+
 
     #for threshold in [0.005, 0.01, 0.015, 0.025, 0.03]:
     #for threshold in numpy.arange(0, 0.5, 0.1):
     #for threshold in numpy.arange(0.001, 0.08, 0.001):
-    for threshold in numpy.arange(0.080, 0.186, 0.001):
+    #for threshold in numpy.arange(0.080, 0.186, 0.001):
+    for threshold in numpy.arange(0.07, 0.2, 0.005):
         threshold = int(threshold*10000)/10000
-        x = evaluator(metric, dataset, threshold, memory, certitude=1)
-        y = evaluator(metric, dataset, threshold, memory, certitude=0.7)
-        write("bertscore_rescale", threshold, x, y)
-
+        x = evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=1)
+        y = evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=0.7)
+        write(choice, threshold, x, y)

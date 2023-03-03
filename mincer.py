@@ -304,7 +304,15 @@ if __name__ == '__main__':
     
     #for threshold in [0.005, 0.01, 0.015, 0.025, 0.03]:
     #for threshold in numpy.arange(0.006, 0.015, 0.002):
-    for threshold in numpy.arange(0.015, 0.025, 0.0004):
+    for threshold in numpy.arange(0.02, 0.25, 0.008):
+        threshold = int(threshold*100000)/100000
+        if threshold != 0.01:
+            x = evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=1)
+            y = evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=0.7)
+            write(choice, threshold, x, y)
+        
+    # to delete
+    for threshold in numpy.arange(0.026, 0.07, 0.002):
         threshold = int(threshold*100000)/100000
         if threshold != 0.01:
             x = evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=1)
