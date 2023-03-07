@@ -2,6 +2,7 @@ import aligned_wer as awer
 from flair.data import Sentence
 from flair.models import SequenceTagger
 import progressbar
+import pickle
 
 def correcter(ref, hyp, corrected, errors):
     # ref, hyp, corrected (100), errors (deesei)
@@ -167,7 +168,7 @@ if __name__ == '__main__':
     with open("datasets/hats.txt", "r", encoding="utf8") as file:
         next(file)
         for Line in file:
-            line = line.split("\t")
+            line = Line.split("\t")
             ref = line[0]
             for ind in [1, 3]:
                 hyp = line[ind] # A or B
@@ -181,5 +182,7 @@ if __name__ == '__main__':
                 bar.update(iterator_progressbar)
 
     print(dicopos)
+    with open("pickle/posgain.pickle", "wb") as handle:
+        pickle.dump(dicopos, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     
