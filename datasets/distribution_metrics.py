@@ -127,5 +127,7 @@ if __name__ == '__main__':
     ax.set(xlim=(0, len(x)), ylim=(0, 1.1)) # xticks=np.arange(0, 0.25, 0.05),
     #    ylim=(40, 100), yticks=np.arange(40, 101, 10))"""
 
+    
+
     plt.show()
     plt.savefig("plot.png")

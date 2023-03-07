@@ -1,6 +1,7 @@
 import aligned_wer as awer
 from flair.data import Sentence
 from flair.models import SequenceTagger
+import progressbar
 
 def correcter(ref, hyp, corrected, errors):
     # ref, hyp, corrected (100), errors (deesei)
@@ -106,11 +107,6 @@ def pos_analyze(ref, hyp, posref, metric, dicopos, mapper, memory):
     # err:   D       S         I
     # hyp:       tu va  bien hein
 
-    print(ref)
-    print(hyp)
-    print(posref)
-    print(dicopos)
-
 
 """
 def semdist(ref, hyp, memory):
@@ -159,25 +155,31 @@ if __name__ == '__main__':
             line = Line[:-1].split("\t")
             mapper[line[0]] = line[1]
             POS.add(line[1])
-
-
-    ref = "on fait des maths pour le plaisir"
-    hyp = "on fêtes des math pour plaisir hein"
-
-    sentence = Sentence(ref)
-    model.predict(sentence)   
-
-
-
-    
-    posref = list(mapper[c[1:-1]] for i, c in enumerate(sentence.to_tagged_string().split(" ")) if (i+1)%2 == 0)
-
     POS.add("<ins>")
+    # dict[pos] = gain
     dicopos = dict()
     for pos in POS:
         dicopos[pos] = []
 
 
-    pos_analyze(ref, hyp, posref, metric, dicopos, mapper, memory)    
+    bar = progressbar.ProgressBar(max_value=2000)
+    iterator_progressbar = 0
+    with open("datasets/hats.txt", "r", encoding="utf8") as file:
+        next(file)
+        for Line in file:
+            line = line.split("\t")
+            ref = line[0]
+            for ind in [1, 3]:
+                hyp = line[ind] # A or B
+                # get POS
+                sentence = Sentence(ref)
+                model.predict(sentence)   
+                posref = list(mapper[c[1:-1]] for i, c in enumerate(sentence.to_tagged_string().split(" ")) if (i+1)%2 == 0) # just get POS from the tagger instead of word & pos
+                # get gain from pos
+                pos_analyze(ref, hyp, posref, metric, dicopos, mapper, memory)
+                iterator_progressbar += 1
+                bar.update(iterator_progressbar)
+
+    print(dicopos)
 
     
