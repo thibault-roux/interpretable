@@ -156,8 +156,15 @@ def MinWER2(ref, hyp, metric, threshold, save, memory):
 
     minwer = 0
     corrected_score = base_score
-    while corrected_score > threshold:
-        max_improvement = max(improvements_array)
+    while corrected_score > threshold and minwer < distance:
+        try:
+            max_improvement = max(improvements_array)
+        except ValueError:
+            print("improvements_array:", improvements_array)
+            print(level)
+            print(minwer)
+            print(corrected_score, threshold)
+            exit(-1)
         corrected_score = corrected_score - max_improvement
         improvements_array.remove(max_improvement)
         minwer += 1
@@ -231,11 +238,11 @@ if __name__ == '__main__':
     print("Reading dataset...")
     dataset = read_dataset("hats.txt")
 
-    choice = "wer"
+    # choice = "wer"
     # choice = "bertscore"
     # choice = "bertscore_rescale"
     # choice = "SD_sent_camembase"
-    # choice = "SD_sent_camemlarge"
+    choice = "SD_sent_camemlarge"
     
 
     if choice == "wer":
