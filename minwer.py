@@ -140,6 +140,12 @@ def read_dataset(dataname):
     return dataset
 
 def evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=0.7, verbose=True):
+    times = [] # delete these four lines
+    wer_dist = []
+    import time
+    import jiwer
+
+
     ignored = 0
     accepted = 0
     correct = 0
@@ -168,8 +174,21 @@ def evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=0
         c = maximum/(nbrA+nbrB)
         if c >= certitude: # if humans are certain about choice
             accepted += 1
+
+            t1 = time.time() # delete everything linked to time and to wer_dist in the following lines
             scoreA = MinWER(dataset[i]["reference"], dataset[i]["hypA"], metric, threshold, save, memory)
+            times.append(time.time()-t1)
+            ref = dataset[i]["reference"]
+            hyp = dataset[i]["hypA"]
+            wer_dist.append(jiwer.wer(ref, hyp)*len(ref.split(" ")))
+
+            t1 = time.time()
             scoreB = MinWER(dataset[i]["reference"], dataset[i]["hypB"], metric, threshold, save, memory)
+            times.append(time.time()-t1)
+            hyp = dataset[i]["hypB"]
+            wer_dist.append(jiwer.wer(ref, hyp)*len(ref.split(" ")))
+
+            
             if (scoreA < scoreB and nbrA > nbrB) or (scoreB < scoreA and nbrB > nbrA):
                 correct += 1
             elif scoreA == scoreB:
@@ -182,6 +201,10 @@ def evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=0
     # storing scores save
     with open("pickle/bertscore_rescale.pickle", "wb") as handle:
         pickle.dump(save, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    with open("pickle/time.pickle", "wb") as handle:
+        elements = (times, wer_dist)
+        pickle.dump(elements, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     print()
     print("correct:", correct)
@@ -239,15 +262,16 @@ if __name__ == '__main__':
     print()
     
 
-
-
+    threshold = 0.01
+    picklename_metric = "pickle/temp.pickle"
+    evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=0.7)
 
     #for threshold in [0.005, 0.01, 0.015, 0.025, 0.03]:
     #for threshold in numpy.arange(0, 0.5, 0.1):
     #for threshold in numpy.arange(0.001, 0.08, 0.001):
     #for threshold in numpy.arange(0.080, 0.186, 0.001):
-    for threshold in numpy.arange(0.07, 0.2, 0.005):
+    """for threshold in numpy.arange(0.15, 0.25, 0.005):
         threshold = int(threshold*10000)/10000
         x = evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=1)
         y = evaluator(metric, dataset, threshold, memory, picklename_metric, certitude=0.7)
-        write(choice, threshold, x, y)
+        write(choice, threshold, x, y)"""
