@@ -157,14 +157,8 @@ def MinWER2(ref, hyp, metric, threshold, save, memory):
     minwer = 0
     corrected_score = base_score
     while corrected_score > threshold and minwer < distance:
-        try:
-            max_improvement = max(improvements_array)
-        except ValueError:
-            print("improvements_array:", improvements_array)
-            print(level)
-            print(minwer)
-            print(corrected_score, threshold)
-            exit(-1)
+        max_improvement = max(improvements_array)
+        
         corrected_score = corrected_score - max_improvement
         improvements_array.remove(max_improvement)
         minwer += 1
@@ -218,8 +212,6 @@ def checker(metric, dataset, threshold, memory, picklename_metric, verbose=True)
             differents += 1
         total += 1
 
-        if i > 20:
-            break
 
     print()
     print("Differents:", differents, "/", total, "=", differents/total)
