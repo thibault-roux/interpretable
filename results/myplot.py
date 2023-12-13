@@ -79,10 +79,10 @@ def plotter(param1, scores1, param2, scores2):
     plt.plot(param2, scores2, marker='o', linestyle='-', markersize=5, color=colors[3], label="minCED") # minced
     
 
-    plt.title('Scores vs Parameter Values')
+    # plt.title('Scores vs Parameter Values')
     plt.show()
-    plt.xlabel("Threshold")
-    plt.ylabel("Percentage")
+    plt.xlabel("θ")
+    plt.ylabel("Correlation %")
     handles, labels = plt.gca().get_legend_handles_labels()
     order = [3, 4, 0, 1, 2]
     plt.legend([handles[idx] for idx in order],[labels[idx] for idx in order])
