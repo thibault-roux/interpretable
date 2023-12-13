@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 
 #plt.style.use('_mpl-gallery')
 
@@ -67,19 +68,20 @@ def obtain_data(certitude, mined):
 def plotter(param1, scores1, param2, scores2):
     colors = ['#4285F4', '#EA4335', '#FBBC05', '#34A853']
     # blue, red, yellow, green
+    additional_colors = sns.color_palette("deep", 8)
 
-    plt.axhline(y=89.75, linestyle='-', color=colors[1])
-    plt.axhline(y=76.55, linestyle='-', color=colors[3])
-    plt.axhline(y=63.07, linestyle='-', color=colors[0])
-    plt.plot(param1, scores1, marker='o', linestyle='-', markersize=5, color=colors[1]) # minwed
-    plt.plot(param2, scores2, marker='o', linestyle='-', markersize=5, color=colors[2]) # minced
+    plt.axhline(y=89.75, linestyle='--', color=colors[1], label="SemDist")
+    plt.axhline(y=76.55, linestyle='--', color=colors[2], label="CER")
+    plt.axhline(y=63.07, linestyle='--', color=additional_colors[1], label="WER")
+    plt.plot(param1, scores1, marker='o', linestyle='-', markersize=5, color=colors[0], label="minWED") # minwed
+    plt.plot(param2, scores2, marker='o', linestyle='-', markersize=5, color=colors[3], label="minCED") # minced
     
 
     plt.title('Scores vs Parameter Values')
     plt.show()
     plt.xlabel("Threshold")
     plt.ylabel("Percentage")
-    # plt.legend()
+    plt.legend()
     plt.savefig("Plots/myplots/bestplot.png")
 
 
