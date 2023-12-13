@@ -14,7 +14,7 @@ def remove_useless(txt, useless=[" ", "(", ")"]):
 
 
 
-def plotter(mined, certitude, namefile, adder):
+def get_scores(mined, certitude, namefile, adder):
     param = []
     scores = []
     # get data
@@ -34,24 +34,10 @@ def plotter(mined, certitude, namefile, adder):
 
     # print(param)
     # print(scores)
-
-    # Create a line plot
-    plt.plot(param, scores, marker='o', linestyle='-')
-    plt.title('Scores vs Parameter Values')
-    plt.show()
-    plt.xlabel("Threshold")
-    plt.ylabel("Percentage")
-    # plt.legend()
-    plt.savefig("Plots/myplots/min"+mined+str(certitude)+".png")
+    return param, scores
 
 
-
-
-
-
-
-
-def process(certitude, mined):
+def obtain_data(certitude, mined):
     # automatic setting
     if mined == "wer":
         namefile = "./"
@@ -67,7 +53,27 @@ def process(certitude, mined):
     else:
         raise Exception("Error, certitude:", certitude)
 
-    plotter(mined, certitude, namefile, adder)
+    param, scores = get_scores(mined, certitude, namefile, adder)
+    return param, scores
+
+
+
+
+def plotter(param1, scores1, param2, scores2):
+
+    plt.axhline(y=89.75, color='r', linestyle='--')
+    plt.axhline(y=63.07, color='r', linestyle='--')
+
+    # Create a line plot
+    plt.plot(param1, scores1, marker='o', linestyle='-')
+    plt.plot(param2, scores2, marker='o', linestyle='-')
+    plt.title('Scores vs Parameter Values')
+    plt.show()
+    plt.xlabel("Threshold")
+    plt.ylabel("Percentage")
+    # plt.legend()
+    plt.savefig("Plots/myplots/bestplot.png")
+
 
 
 
@@ -75,18 +81,11 @@ def process(certitude, mined):
 
 if __name__ == '__main__':
     
-    All = False # False
-
-    if not All:
-        # parameters to set
-        certitude = 100 # ou 70
-        mined = "wer" # ou "cer"
-
-        process(certitude, mined)
-    else:
-        for mined in ["wer", "cer"]:
-            print(mined)
-            for certitude in [70, 100]:
-                print(certitude)
-                # automatic setting
-                process(certitude, mined)
+    certitude = 100
+    
+    mined = "wer"
+    param1, scores1 = obtain_data(certitude, mined)
+    mined = "cer"
+    param2, scores2 = obtain_data(certitude, mined)
+    
+    plotter(param1, scores1, param2, scores2)
