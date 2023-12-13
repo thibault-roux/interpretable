@@ -70,6 +70,8 @@ def plotter(param1, scores1, param2, scores2):
     # blue, red, yellow, green
     additional_colors = sns.color_palette("deep", 8)
 
+    plt.style.use("ggplot")
+
     plt.axhline(y=89.75, linestyle='--', color=colors[1], label="SemDist")
     plt.axhline(y=76.55, linestyle='--', color=colors[2], label="CER")
     plt.axhline(y=63.07, linestyle='--', color=additional_colors[1], label="WER")
@@ -84,7 +86,7 @@ def plotter(param1, scores1, param2, scores2):
     handles, labels = plt.gca().get_legend_handles_labels()
     order = [3, 4, 0, 1, 2]
     plt.legend([handles[idx] for idx in order],[labels[idx] for idx in order])
-    plt.savefig("Plots/myplots/bestplot.png")
+    plt.savefig("Plots/myplots/bestplot.svg")
 
 
 
