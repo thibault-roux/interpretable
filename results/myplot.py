@@ -63,6 +63,7 @@ def plotter(param1, scores1, param2, scores2):
 
     plt.axhline(y=89.75, color='r', linestyle='--')
     plt.axhline(y=63.07, color='r', linestyle='--')
+    plt.axhline(y=76.55, color='r', linestyle='--')
 
     # Create a line plot
     plt.plot(param1, scores1, marker='o', linestyle='-')
