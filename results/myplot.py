@@ -15,8 +15,14 @@ def remove_useless(txt, useless=[" ", "(", ")"]):
 
 
 def get_scores(mined, certitude, namefile, adder):
-    param = []
-    scores = []
+    if mined == "wer":
+        param = [0]
+        scores = [63.07]
+    elif mined == "cer":
+        param = [0]
+        scores = [76.55]
+    else:
+        raise Exception("Error, mined:", mined)
     # get data
     with open(namefile, "r", encoding="utf8") as file:
         for LINE in file:
