@@ -1,6 +1,6 @@
-
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 
 #plt.style.use('_mpl-gallery')
 
@@ -67,13 +67,15 @@ def obtain_data(certitude, mined):
 
 def plotter(param1, scores1, param2, scores2):
 
-    plt.axhline(y=89.75, color='r', linestyle='--')
-    plt.axhline(y=63.07, color='r', linestyle='--')
-    plt.axhline(y=76.55, color='r', linestyle='--')
+    sns.set(style="whitegrid")
+
+    plt.axhline(y=89.75, linestyle='-', color=sns.color_palette("muted")[2])
+    plt.axhline(y=63.07, linestyle='-', color=sns.color_palette("muted")[3])
+    plt.axhline(y=76.55, linestyle='-', color=sns.color_palette("muted")[4])
 
     # Create a line plot
-    plt.plot(param1, scores1, marker='o', linestyle='-')
-    plt.plot(param2, scores2, marker='o', linestyle='-')
+    plt.plot(param1, scores1, marker='o', linestyle='-', markersize=5, color=sns.color_palette("muted")[0])
+    plt.plot(param2, scores2, marker='o', linestyle='-', markersize=5, color=sns.color_palette("muted")[1])
     plt.title('Scores vs Parameter Values')
     plt.show()
     plt.xlabel("Threshold")
