@@ -51,12 +51,16 @@ def plotter(mined, certitude, namefile):
     # plot
     fig, ax = plt.subplots()
 
-    ax.stackplot(x, y)
+    labels = ["Correct", "Equal", "Incorrect"]
+    ax.stackplot(x, y, labels=labels, colors=("dodgerblue", "turquoise", "salmon"))
 
     ax.set(xlim=(0, 0.25), xticks=np.arange(0, 0.25, 0.05),
         ylim=(40, 100), yticks=np.arange(40, 101, 10))
 
     plt.show()
+    plt.xlabel("Threshold")
+    plt.ylabel("Percentage")
+    plt.legend()
     plt.savefig("Plots/min"+mined+str(certitude)+".png")
 
 
@@ -82,7 +86,7 @@ if __name__ == '__main__':
             namefile = "./MINCER/"
         else:
             raise Exception("Error, mined:", mined)
-        namefile += "SD_sent_camemlarge.txt"
+        namefile += "SD_sent_camemlarge.txt" # "bertscore_rescale.txt"
         if certitude == 100:
             adder = 0
         elif certitude == 70:
@@ -102,7 +106,7 @@ if __name__ == '__main__':
                 namefile = "./MINCER/"
             else:
                 raise Exception("Error, mined:", mined)
-            namefile += "SD_sent_camemlarge.txt"
+            namefile += "SD_sent_camemlarge.txt" # "bertscore_rescale.txt"
             if certitude == 100:
                 adder = 0
             elif certitude == 70:
