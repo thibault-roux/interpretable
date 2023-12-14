@@ -43,7 +43,7 @@ def get_scores(mined, certitude, namefile, adder):
     return param, scores
 
 
-def obtain_data(certitude, mined):
+def obtain_data(certitude, mined, choice):
     # automatic setting
     if mined == "wer":
         namefile = "./"
@@ -51,7 +51,7 @@ def obtain_data(certitude, mined):
         namefile = "./MINCER/"
     else:
         raise Exception("Error, mined:", mined)
-    namefile += "SD_sent_camemlarge.txt" # "bertscore_rescale.txt"
+    namefile += choice + ".txt" #"SD_sent_camemlarge.txt" # "bertscore_rescale.txt"
     if certitude == 100:
         adder = 0
     elif certitude == 70:
@@ -96,10 +96,11 @@ def plotter(param1, scores1, param2, scores2):
 if __name__ == '__main__':
     
     certitude = 100
+    choice = "bertscore_rescale" # "SD_sent_camemlarge"
     
     mined = "wer"
-    param1, scores1 = obtain_data(certitude, mined)
+    param1, scores1 = obtain_data(certitude, mined, choice)
     mined = "cer"
-    param2, scores2 = obtain_data(certitude, mined)
+    param2, scores2 = obtain_data(certitude, mined, choice)
     
     plotter(param1, scores1, param2, scores2)
