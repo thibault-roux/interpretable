@@ -86,7 +86,7 @@ def plotter(param1, scores1, param2, scores2):
     handles, labels = plt.gca().get_legend_handles_labels()
     order = [3, 4, 0, 1, 2]
     plt.legend([handles[idx] for idx in order],[labels[idx] for idx in order])
-    plt.savefig("Plots/myplots/bestplot.svg")
+    plt.savefig("Plots/myplots/bertscore.png")
 
 
 
