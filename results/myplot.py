@@ -86,7 +86,7 @@ def plotter(param1, scores1, param2, scores2):
     handles, labels = plt.gca().get_legend_handles_labels()
     order = [3, 4, 0, 1, 2]
     plt.legend([handles[idx] for idx in order],[labels[idx] for idx in order])
-    plt.savefig("Plots/myplots/bertscore.png")
+    plt.savefig("Plots/myplots/semdist.svg") # bertscore ou semdist
 
 
 
@@ -96,7 +96,8 @@ def plotter(param1, scores1, param2, scores2):
 if __name__ == '__main__':
     
     certitude = 100
-    choice = "bertscore_rescale" # "SD_sent_camemlarge"
+    # choice = "bertscore_rescale"
+    choice = "SD_sent_camemlarge" # do not forget to modify savefig
     
     mined = "wer"
     param1, scores1 = obtain_data(certitude, mined, choice)
