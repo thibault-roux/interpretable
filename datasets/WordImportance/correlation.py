@@ -79,22 +79,21 @@ def compute_scores(sentencebertname):
                 metric_scores.append(score)
         all_metric_scores[namefile] = metric_scores
     sentencebertname = sentencebertname.replace("/", "_")
-    with open(sentencebertname + ".pkl", "wb") as f:
+    with open("pickle/" + sentencebertname + ".pkl", "wb") as f:
         pickle.dump(all_metric_scores, f)
 
         
 
 
-if __name__ == "__main__":
-    sentencebertname = 'dangvantuan/sentence-camembert-large'
+def compute_correlation(sentencebertname):
 
-    # compute_scores(sentencebertname)
+    compute_scores(sentencebertname)
 
     filenames = get_filenames()
 
     # load pickle
     sentencebertname = sentencebertname.replace("/", "_")
-    with open(sentencebertname + ".pkl", "rb") as f:
+    with open("pickle/" + sentencebertname + ".pkl", "rb") as f:
         all_metric_scores = pickle.load(f)
 
     err = 0
@@ -117,6 +116,15 @@ if __name__ == "__main__":
                 #     print(len(annotations[i]))
             else:
                 corrs.append(corr[0])
-    print("err: ", err)
-    print("len(corrs): ", len(corrs))
     print(sum(corrs)/len(corrs))
+
+
+if __name__ == "__main__":
+    # sentencebertname = 'dangvantuan/sentence-camembert-large'
+    # sentencebertname = 'paraphrase-MiniLM-L6-v2'
+
+    sentencebertname = ["all_mpnet-base-v2", "multi-qa-mpnet-base-dot-v1", "all-distilroberta-v1", "all-MiniLM-L12-v2", "paraphrase-MiniLM-L3-v2"]
+    for s in sentencebertname:
+        print("start: ", s)
+        compute_correlation(s)
+        print("done: ", s)
