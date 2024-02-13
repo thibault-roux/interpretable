@@ -58,10 +58,10 @@ def remove_word(transcript_list, i):
     hyp = transcript_list[:i] + transcript_list[i+1:]
     return " ".join(hyp)
 
-def compute_scores():
+def compute_scores(sentencebertname):
     filenames = get_filenames()
 
-    sentencemodel = SentenceTransformer('dangvantuan/sentence-camembert-large')
+    sentencemodel = SentenceTransformer(sentencebertname)
 
     all_metric_scores = dict()
     for namefile in filenames:
@@ -78,27 +78,45 @@ def compute_scores():
                 score = semdist(transcript, hyp, sentencemodel)
                 metric_scores.append(score)
         all_metric_scores[namefile] = metric_scores
-    with open("metrics.pkl", "wb") as f:
+    sentencebertname = sentencebertname.replace("/", "_")
+    with open(sentencebertname + ".pkl", "wb") as f:
         pickle.dump(all_metric_scores, f)
 
         
 
 
 if __name__ == "__main__":
-    # compute_scores()
+    sentencebertname = 'dangvantuan/sentence-camembert-large'
+
+    # compute_scores(sentencebertname)
 
     filenames = get_filenames()
 
     # load pickle
-    with open("metrics.pkl", "rb") as f:
+    sentencebertname = sentencebertname.replace("/", "_")
+    with open(sentencebertname + ".pkl", "rb") as f:
         all_metric_scores = pickle.load(f)
 
+    err = 0
     corrs = []
     for namefile in filenames:
         annotations = get_annotations(namefile)
         transcripts = get_transcripts(namefile)
         
         annotations, transcripts = clean_transcript(annotations, transcripts)
-        corr = stats.spearmanr(all_metric_scores[namefile], annotations)
-        corrs.append(corr[0])
+
+        
+        prev = 0
+        for i in range(len(annotations)):
+            next = prev + len(annotations[i])
+            corr = stats.spearmanr(all_metric_scores[namefile][prev:next], annotations[i])
+            prev = next
+            if corr[0] != corr[0]:
+                err += 1
+                # if len(annotations[i]) > 1:
+                #     print(len(annotations[i]))
+            else:
+                corrs.append(corr[0])
+    print("err: ", err)
+    print("len(corrs): ", len(corrs))
     print(sum(corrs)/len(corrs))
