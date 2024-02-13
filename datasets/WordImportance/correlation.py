@@ -1,4 +1,5 @@
 import pickle
+from scipy import stats
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -54,10 +55,10 @@ def semdist(ref, hyp, memory):
     return 1 - score # between 0 and 1 (or more in case of negative score) / lower is better
 
 def remove_word(transcript_list, i):
-    hyp = transcript[:i] + transcript[i+1:]
+    hyp = transcript_list[:i] + transcript_list[i+1:]
     return " ".join(hyp)
 
-if __name__ == "__main__":
+def compute_scores():
     filenames = get_filenames()
 
     sentencemodel = SentenceTransformer('dangvantuan/sentence-camembert-large')
@@ -74,10 +75,30 @@ if __name__ == "__main__":
             transcript_list = transcript.split(" ")
             for i in range(len(transcript_list)):
                 hyp = remove_word(transcript_list, i)
-                score = semdist(transcript, hyp, model)
+                score = semdist(transcript, hyp, sentencemodel)
                 metric_scores.append(score)
         all_metric_scores[namefile] = metric_scores
     with open("metrics.pkl", "wb") as f:
         pickle.dump(all_metric_scores, f)
 
         
+
+
+if __name__ == "__main__":
+    # compute_scores()
+
+    filenames = get_filenames()
+
+    # load pickle
+    with open("metrics.pkl", "rb") as f:
+        all_metric_scores = pickle.load(f)
+
+    corrs = []
+    for namefile in filenames:
+        annotations = get_annotations(namefile)
+        transcripts = get_transcripts(namefile)
+        
+        annotations, transcripts = clean_transcript(annotations, transcripts)
+        corr = stats.spearmanr(all_metric_scores[namefile], annotations)
+        corrs.append(corr[0])
+    print(sum(corrs)/len(corrs))
