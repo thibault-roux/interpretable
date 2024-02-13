@@ -85,9 +85,10 @@ def compute_scores(sentencebertname):
         
 
 
-def compute_correlation(sentencebertname):
+def compute_correlation(sentencebertname, compute_score):
 
-    compute_scores(sentencebertname)
+    if compute_score:
+        compute_scores(sentencebertname)
 
     filenames = get_filenames()
 
@@ -120,11 +121,9 @@ def compute_correlation(sentencebertname):
 
 
 if __name__ == "__main__":
-    # sentencebertname = 'dangvantuan/sentence-camembert-large'
-    # sentencebertname = 'paraphrase-MiniLM-L6-v2'
-
-    sentencebertname = ["all_mpnet-base-v2", "multi-qa-mpnet-base-dot-v1", "all-distilroberta-v1", "all-MiniLM-L12-v2", "paraphrase-MiniLM-L3-v2"]
+    sentencebertname = ["dangvantuan/sentence-camembert-large", "paraphrase-MiniLM-L6-v2", "all-mpnet-base-v2", "multi-qa-mpnet-base-dot-v1", "all-distilroberta-v1", "all-MiniLM-L12-v2", "paraphrase-MiniLM-L3-v2"]
     for s in sentencebertname:
         print("start: ", s)
-        compute_correlation(s)
+        compute_correlation(s, compute_score=False)
         print("done: ", s)
+        print()
