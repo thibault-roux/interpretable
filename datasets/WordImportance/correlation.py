@@ -1,3 +1,8 @@
+import pickle
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+
+
 
 def get_filenames():
     filenames = []
@@ -48,15 +53,31 @@ def semdist(ref, hyp, memory):
     score = cosine_similarity(ref_projection, hyp_projection)[0][0]
     return 1 - score # between 0 and 1 (or more in case of negative score) / lower is better
 
+def remove_word(transcript_list, i):
+    hyp = transcript[:i] + transcript[i+1:]
+    return " ".join(hyp)
 
 if __name__ == "__main__":
     filenames = get_filenames()
 
-    viewed = set()
+    sentencemodel = SentenceTransformer('dangvantuan/sentence-camembert-large')
+
+    all_metric_scores = dict()
     for namefile in filenames:
         annotations = get_annotations(namefile)
         transcripts = get_transcripts(namefile)
         
         annotations, transcripts = clean_transcript(annotations, transcripts)
-        # we now need to compute the improvements lists for correction a deletion from each element.
+
+        metric_scores = []
+        for transcript in transcripts:
+            transcript_list = transcript.split(" ")
+            for i in range(len(transcript_list)):
+                hyp = remove_word(transcript_list, i)
+                score = semdist(transcript, hyp, model)
+                metric_scores.append(score)
+        all_metric_scores[namefile] = metric_scores
+    with open("metrics.pkl", "wb") as f:
+        pickle.dump(all_metric_scores, f)
+
         
