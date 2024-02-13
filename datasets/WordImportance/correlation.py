@@ -1,4 +1,3 @@
-import re
 
 def get_filenames():
     filenames = []
@@ -28,9 +27,6 @@ def get_transcripts(namefile):
     return transcripts
 
 
-def remove_brackets(sentence):
-    return re.sub(r'\[.*?\]', '-', sentence)
-
 def clean_transcript(annotations, transcripts):
     new_annotations = []
     new_transcripts = []
@@ -41,10 +37,16 @@ def clean_transcript(annotations, transcripts):
             # remove from transcript the characters between brackets
             new_annotations.append(annotation)
             new_transcripts.append(transcript)
-    print(len(new_annotations))
-    print(len(new_transcripts))
-    print(len(annotations))
-    print(len(transcripts))
+    return new_annotations, new_transcripts
+
+
+
+def semdist(ref, hyp, memory):
+    model = memory
+    ref_projection = model.encode(ref).reshape(1, -1)
+    hyp_projection = model.encode(hyp).reshape(1, -1)
+    score = cosine_similarity(ref_projection, hyp_projection)[0][0]
+    return 1 - score # between 0 and 1 (or more in case of negative score) / lower is better
 
 
 if __name__ == "__main__":
@@ -55,6 +57,6 @@ if __name__ == "__main__":
         annotations = get_annotations(namefile)
         transcripts = get_transcripts(namefile)
         
-        print(namefile)
-        clean_transcript(annotations, transcripts)
-        print()
+        annotations, transcripts = clean_transcript(annotations, transcripts)
+        # we now need to compute the improvements lists for correction a deletion from each element.
+        
