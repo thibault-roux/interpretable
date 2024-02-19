@@ -121,13 +121,13 @@ def compute_correlation(sentencebertname, compute_score):
 
         prev = 0
         for i in range(len(annotations)):
+            total += 1
             # len(annotations[i]) = 1..30 # différentes valeurs possibles
             # print("len(annotations[i]):", len(annotations[i]))
             next = prev + len(annotations[i])
-            if len(annotations[i]) > -1 and len(annotations[i]) < 100000:
+            if len(annotations[i]) > 2 and len(annotations[i]) < 10:
                 # print("prev:", prev, "next:", next)
                 corr = stats.spearmanr(all_metric_scores[namefile][prev:next], annotations[i])
-                total += len(all_metric_scores[namefile])
                 sd_scores = all_metric_scores[namefile][prev:next]
                 # for iterator in range(len(sd_scores)):
                 #     sd_scores[iterator] = 1/(1+2.718**(-sd_scores[iterator]*10))
@@ -151,8 +151,9 @@ def compute_correlation(sentencebertname, compute_score):
             prev = next
     print("len(corrs):", len(corrs))
     print("total:", total)
+    print("err:", err)
+    print("ratio accepted:", len(corrs)/(total-err))
     print(sum(corrs)/len(corrs))
-    exit()
 
 
 if __name__ == "__main__":
