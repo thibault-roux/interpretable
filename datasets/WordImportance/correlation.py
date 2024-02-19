@@ -108,10 +108,12 @@ def compute_correlation(sentencebertname, compute_score):
         for i in range(len(annotations)):
             total += 1
             next = prev + len(annotations[i])
+            # to avoid weird cases
             if len(annotations[i]) > 2 and len(annotations[i]) < 10:
+                # compute correlation
                 corr = stats.spearmanr(all_metric_scores[namefile][prev:next], annotations[i])
 
-                input()
+                # to avoid nan values
                 if corr[0] != corr[0]:
                     err += 1
                 else:
@@ -121,6 +123,7 @@ def compute_correlation(sentencebertname, compute_score):
     print("total:", total)
     print("err:", err)
     print("ratio accepted:", len(corrs)/(total-err))
+    # average of correlation
     print(sum(corrs)/len(corrs))
 
 
