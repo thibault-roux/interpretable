@@ -104,48 +104,16 @@ def compute_correlation(sentencebertname, compute_score):
         
         annotations, transcripts = clean_transcript(annotations, transcripts)
 
-
-        # i = 10
-
-        # print(namefile)
-        # print(len(annotations), annotations[0], sum([len(x) for x in annotations]))
-        # print(len(transcripts), transcripts[0], sum([len(x.split(" ")) for x in transcripts]))
-        # alls = all_metric_scores[namefile]
-        # print(len(alls), alls[0:len(annotations[0])])
-
-
-        # annotations : list of 39 lists (total = 623)
-        # transcripts : list of 39 strings (total = 623)
-        # all_metric_scores[namefile] : list of 623 floats
-        # exit()
-
         prev = 0
         for i in range(len(annotations)):
             total += 1
-            # len(annotations[i]) = 1..30 # différentes valeurs possibles
-            # print("len(annotations[i]):", len(annotations[i]))
             next = prev + len(annotations[i])
             if len(annotations[i]) > 2 and len(annotations[i]) < 10:
-                # print("prev:", prev, "next:", next)
                 corr = stats.spearmanr(all_metric_scores[namefile][prev:next], annotations[i])
-                sd_scores = all_metric_scores[namefile][prev:next]
-                # for iterator in range(len(sd_scores)):
-                #     sd_scores[iterator] = 1/(1+2.718**(-sd_scores[iterator]*10))
-                #     sd_scores[iterator] = round(sd_scores[iterator], 2)
-                # print(sd_scores)
-                # print(annotations[i])
-                # print(transcripts[i])
-                # print(corr[0])
-                # print()
 
-                # [0.51, 0.56, 0.51] / [0.0033661723136901855, 0.024717211723327637, 0.0022231340408325195]
-                # [0.0, 0.1, 0.3]
-                # well that's nice
-                # input()
+                input()
                 if corr[0] != corr[0]:
                     err += 1
-                    # if len(annotations[i]) > 1:
-                    #     print(len(annotations[i]))
                 else:
                     corrs.append(corr[0])
             prev = next
