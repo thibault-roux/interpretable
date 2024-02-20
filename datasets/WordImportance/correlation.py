@@ -98,6 +98,9 @@ def compute_correlation(sentencebertname, compute_score):
     err = 0
     corrs = []
     total = 0
+    dicorrs = dict()
+    for i in range(30):
+        dicorrs[i] = []
     for namefile in filenames:
         annotations = get_annotations(namefile)
         transcripts = get_transcripts(namefile)
@@ -109,7 +112,8 @@ def compute_correlation(sentencebertname, compute_score):
             total += 1
             next = prev + len(annotations[i])
             # to avoid weird cases
-            if len(annotations[i]) > 2 and len(annotations[i]) < 10:
+            # if len(annotations[i]) > 2 and len(annotations[i]) < 10:
+            if True:
                 # compute correlation
                 corr = stats.spearmanr(all_metric_scores[namefile][prev:next], annotations[i])
 
@@ -118,11 +122,16 @@ def compute_correlation(sentencebertname, compute_score):
                     err += 1
                 else:
                     corrs.append(corr[0])
+                    dicorrs[len(annotations[i])].append(corr[0])
             prev = next
     print("len(corrs):", len(corrs))
     print("total:", total)
     print("err:", err)
     print("ratio accepted:", len(corrs)/(total-err))
+    # average of correlation per length of annotations
+    for k, v in dicorrs.items():
+        if len(v) > 0:
+            print(k, sum(v)/len(v))
     # average of correlation
     print(sum(corrs)/len(corrs))
 
