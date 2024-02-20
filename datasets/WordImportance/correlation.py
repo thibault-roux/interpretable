@@ -122,6 +122,8 @@ def compute_correlation(sentencebertname, compute_score):
                     err += 1
                 else:
                     corrs.append(corr[0])
+                    if len(annotations[i]) not in dicorrs:
+                        dicorrs[len(annotations[i])] = []
                     dicorrs[len(annotations[i])].append(corr[0])
             prev = next
     print("len(corrs):", len(corrs))
@@ -131,7 +133,7 @@ def compute_correlation(sentencebertname, compute_score):
     # average of correlation per length of annotations
     for k, v in dicorrs.items():
         if len(v) > 0:
-            print(k, sum(v)/len(v))
+            print(k, len(v), round(sum(v)/len(v), 3))
     # average of correlation
     print(sum(corrs)/len(corrs))
 
