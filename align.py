@@ -74,7 +74,7 @@ def needleman_wunsch_traceback(A, B, F, d):
         AlignmentB = B[j - 1] + AlignmentB
         j -= 1
         
-    return AlignmentA, AlignmentB
+    return AlignmentA[:-1], AlignmentB[:-1]
 
 
 
@@ -176,15 +176,16 @@ def awer(ref,hyp):
         elif alignmentA[i] == alignmentB[i]:
             errors.append("e")
             
-    return distance, errors
+    return errors, distance
 
 if __name__ == "__main__":
     # ref = input("Enter reference: ")
     # hyp = input("Enter hypothesis: ")
 
-    ref = "avec cinquante six pour cent des voix céline bracq bonjour vous êtes directrice adjointe de bva françois hollande progresse"
-    hyp = "avec cinquante six pourcent des voix céline brague bonjour vous êtes directrice adjointe de bva françois hollande progresse"
+    ref = "or le dirigeant de cosmos lui même quand il a été interrogé en novembre deux mille onze"
+    hyp = "or le dirigeant de cosmos lui-même quand il a été interrogé en novembre deux mille onze"
 
     print()
 
     print(awer(ref,hyp))
+    print(align(ref,hyp)) 
